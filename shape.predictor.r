@@ -194,3 +194,66 @@ shape.predictor <- function(A, x = NULL, Intercept = FALSE, method = c("LS", "PL
   preds <- lapply(preds, reshape)
   return(preds)
 }
+
+# pls
+# performs PLS analysis
+# Used in two.b.pls, integration.test, phylo.integration, apply.pls
+pls <- function(x,y, RV=FALSE, verbose = FALSE){
+  x <- as.matrix(x); y <- as.matrix(y)
+  px <- dim(x)[2]; py <- dim(y)[2]; pmin <- min(px,py)
+  S12 <- crossprod(center(x),center(y))/(dim(x)[1] - 1)
+  if(length(S12) == 1) {
+    r.pls <- cor(x,y)
+    pls <- NULL
+    U <- NULL
+    V <- NULL
+    XScores <- x
+    YScores <- y
+  }
+  else {
+    pls <- La.svd(S12, pmin, pmin)
+    U <- pls$u; V <- t(pls$vt)
+    XScores <- x %*% U
+    YScores <- y %*% V
+    r.pls <- cor(XScores[,1],YScores[,1])
+  }
+  if(RV == TRUE){
+    S11 <- var(x)
+    S22 <- var(y)
+    RV <- sum(colSums(S12^2))/sqrt(sum(S11^2)*sum(S22^2))
+  } else
+    RV <- NULL
+  if(verbose==TRUE){
+    XScores <- as.matrix(XScores); Y <- as.matrix(YScores)
+    rownames(U)  = colnames(x); rownames(V) = colnames(y)
+    out <- list(pls.svd = pls, r.pls = r.pls, RV=RV, left.vectors=U,
+                right.vectors=V, XScores=XScores,YScores=YScores)
+  } else out <- r.pls
+  out
+}
+
+#' Estimate mean shape for a set of aligned specimens
+#'
+#' Estimate the mean shape for a set of aligned specimens
+#'
+#' The function estimates the average landmark coordinates for a set of aligned specimens. It is assumed
+#' that the landmarks have previously been aligned using Generalized Procrustes Analysis (GPA)
+#'  [e.g., with \code{\link{gpagen}}]. This function is described in Claude (2008).
+#'
+#' @param A Either a list (length n, ach p x k), A 3D array (p x k x n), or a matrix (pk X n) containing GPA-aligned coordinates for a set of specimens
+#' @keywords utilities
+#' @export
+#' @author Julien Claude
+#' @references Claude, J. 2008. Morphometrics with R. Springer, New York.
+#' @examples
+#' data(plethodon)
+#' Y.gpa<-gpagen(plethodon$land)    #GPA-alignment
+#'
+#' mshape(Y.gpa$coords)   #mean (consensus) configuration
+mshape<-function(A){
+  if(is.array(A)) res <- apply(A,c(1,2),mean)
+  if(is.list(A)) res <- Reduce("+", A)/length(A)
+  if(is.matrix(A)) res <- colMeans(A)
+  if(!is.array(A) && !is.list(A) && !is.matrix(A)) stop("There are not multiple configurations from which to obtain a mean.")
+  return(res)
+}

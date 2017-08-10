@@ -349,3 +349,14 @@ tps2d3d<-function(M, matr, matt, PB=TRUE){		#DCA: altered from J. Claude 2008
 # singular matrices is in doubt; mostly phylo. functions
 fast.solve <- function(x) if(det(x) > 1e-8) qr.solve(x) else fast.ginv(x)
 
+# fast.ginv
+# same as ginv, but without traps (faster)
+# used in any function requiring a generalized inverse
+fast.ginv <- function(X, tol = sqrt(.Machine$double.eps)){
+  k <- ncol(X)
+  Xsvd <- La.svd(X, k, k)
+  Positive <- Xsvd$d > max(tol * Xsvd$d[1L], 0)
+  rtu <-((1/Xsvd$d[Positive]) * t(Xsvd$u[, Positive, drop = FALSE]))
+  v <-t(Xsvd$vt)[, Positive, drop = FALSE]
+  v%*%rtu
+}

@@ -42,3 +42,10 @@ picknplot.shape <- function(A){
   plotRefToTarget(mshape(A), preds$pred1)
 }
 picknplot.shape(Y.gpa$coords) # try it out
+
+# Can we use rgl for all plotting?
+# Trying to plot a 2D image in rgl window
+view3d(phi = 0, fov = 30, interactive = FALSE) # sets X,Y in view, with Z into screen. And fov removes too much distortion, and interactive stops rotation by mouse click
+plot3d(cbind(PC, 0), zlab = "")
+# perfect. 
+

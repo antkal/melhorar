@@ -343,3 +343,9 @@ tps2d3d<-function(M, matr, matt, PB=TRUE){		#DCA: altered from J. Claude 2008
   matg
 }
 
+# fast.solve
+# chooses between fast.ginv or qr.solve, when det might or might not be 0
+# used in any function requiring a matrix inverse where the certainty of
+# singular matrices is in doubt; mostly phylo. functions
+fast.solve <- function(x) if(det(x) > 1e-8) qr.solve(x) else fast.ginv(x)
+

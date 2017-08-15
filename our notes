@@ -2,4 +2,5 @@
 
 1. Figure out saving from rgl machine
 2. Add options to picknplot:
-    - add method to arguments (copy Mike´s option l. 76 of plotReftoTarget)
+    - add method to arguments (copy Mike´s option l. 76 of plotRefToTarget)
+    - check dim(A) (copy l. 82 of plotRefToTarget)

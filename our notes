@@ -1,0 +1,5 @@
+15AUG2017
+
+1. Figure out saving from rgl machine
+2. Add options to picknplot:
+    - add method to arguments (copy Mike´s option l. 76 of plotReftoTarget)

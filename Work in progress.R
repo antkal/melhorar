@@ -19,7 +19,7 @@ plotRefToTarget(Y.gpa$consensus, preds$pred3)
 PCA <- prcomp(two.d.array((Y.gpa$coords)))
 PC <- PCA$x[,1:2]
 plot(PC, asp=1, pch=19)
-picked.pts <- locator() # runs, interactive, choose points in plot
+picked.pts <- locator(n = 3) # runs, interactive, choose points in plot
 picked.pts <- matrix(unlist(picked.pts), ncol=2) # x is first column, y second
 # Assuming you chose 3 points:
 preds <- shape.predictor(Y.gpa$coords, x= PC, Intercept = FALSE, 

@@ -1,7 +1,5 @@
 # Outline: Make a function that calculates and plots a predicted shape, based on a user click in tangent space.
 
-# Trial comment by Antigoni :)
-
 library(geomorph)
 data(plethodon) 
 Y.gpa <- gpagen(plethodon$land,PrinAxes=FALSE)
@@ -34,7 +32,8 @@ plotRefToTarget(Y.gpa$consensus, preds$pred3)
 
 # Simple function that allows a user to choose a single point and it gets plotted
 # A is 3D array of coords
-picknplot.shape <- function(A){
+picknplot.shape <- function(A, method = c("TPS","vector","points","surface")){
+  method <- match.arg(method)
   PCA <- prcomp(two.d.array(A))
   PC <- PCA$x[,1:2]
   plot(PC, asp=1, pch=19)
@@ -42,9 +41,15 @@ picknplot.shape <- function(A){
   picked.pts <- unlist(locator(n=1)) 
   preds <- shape.predictor(A, x= PC, Intercept = FALSE, pred1 = picked.pts) 
   view3d(phi = 0, fov = 30, interactive = FALSE) 
-  plotRefToTarget(cbind(mshape(A),0), cbind(preds$pred1,0), method = "vector")
+  plotRefToTarget(cbind(mshape(A),0), cbind(preds$pred1,0), method = method)
 }
 picknplot.shape(Y.gpa$coords) # try it out
+
+# Saving manually from rgl
+rgl.snapshot("/Users/antigoni/Desktop/test.png") # This does the trick
+
+# Also found this by chance which will be useful in the future, check:
+?movie3d
 
 # Can we use rgl for all plotting?
 # Trying to plot a 2D image in rgl window

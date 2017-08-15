@@ -1,9 +1,10 @@
 library(geomorph)
 
 # Example data
+# 2d
 data(plethodon) 
 Y.gpa <- gpagen(plethodon$land,PrinAxes=FALSE)
-
+# 3d
 data(scallops)
 Y3d.gpa <- gpagen(A=scallops$coorddata, curves=scallops$curvslide, surfaces=scallops$surfslide)
 
@@ -15,7 +16,7 @@ picknplot.shape <- function(A, ...){
   PCA <- prcomp(two.d.array(A))
   PC <- PCA$x[,1:2]
   plot(PC, asp = 1, pch = 19)
-  cat("Pick a point in the shape space")
+  cat("Pick a point in the shape space", "\n")
   picked.pts <- unlist(locator(n = 1, type = "p", pch = 20, col = "red", cex = 0.5))
   preds <- shape.predictor(A, x = PC, Intercept = FALSE, pred1 = picked.pts) 
   k <- dim(A)[2]
@@ -31,6 +32,14 @@ picknplot.shape <- function(A, ...){
     view3d(phi = 0, fov = 30, interactive = TRUE) 
     do.call(plotRefToTarget,  args = plot.args)
   }
+  ans <- readline("Save deformation grid as png file (y/n)? ")
+  if(ans=="y") {
+    file.name <- readline("Please provide file name for saving deformation grid ")
+    rgl.snapshot(file = file.name)
+  }
+  if(ans=="n"){
+    rgl.close()
+  }  
 }
 
 # try it out for 2d (method = "TPS" not available yet in rgl machine)

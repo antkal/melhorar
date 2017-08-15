@@ -11,4 +11,6 @@
 TO DO NEXT (AK 15AUG2017)
 - Figure out how to make rgl.snapshot work OK when the user provides file name as a string. At present it only works if you do not put quotes to it
 
+- Improve shape.animation() options. Do we want to add an option for saving as video? In the future, this may be generalized as a wrapper of shape.predictor()
+
 - Solve functions for method = "TPS"

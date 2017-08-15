@@ -41,7 +41,8 @@ picknplot.shape <- function(A){
   cat("Pick a point in the shape space")
   picked.pts <- unlist(locator(n=1)) 
   preds <- shape.predictor(A, x= PC, Intercept = FALSE, pred1 = picked.pts) 
-  plotRefToTarget(cbind(mshape(A),0), cbind(preds$pred1,0))
+  view3d(phi = 0, fov = 30, interactive = FALSE) 
+  plotRefToTarget(cbind(mshape(A),0), cbind(preds$pred1,0), method = "vector")
 }
 picknplot.shape(Y.gpa$coords) # try it out
 

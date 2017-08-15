@@ -1,9 +1,14 @@
 15AUG2017 - Add options to picknplot
 
-1. Figure out saving from rgl machine
-2. Add method to arguments (copy Mike´s option l. 76 of plotRefToTarget)
-3. Check dim(A) (copy l. 82 of plotRefToTarget)
-4. Allow rotation for real 3d shapes, but not for 2d
-5. Ellipsis programming to pass plotRefToTarget arguments
-6. Add point to the clicked point selected by the user in the biplot
-7. Ask user: save grid? save biplot?
+1. Figure out saving from rgl machine - DONE
+2. Add method to arguments (copy Mike´s option l. 76 of plotRefToTarget) - DONE
+3. Check dim(A) (copy l. 82 of plotRefToTarget) - DONE
+4. Allow rotation for real 3d shapes, but not for 2d - DONE
+5. Ellipsis programming to pass plotRefToTarget arguments - DONE
+6. Add point to the clicked point selected by the user in the biplot - DONE
+7. Ask user: save grid? - DONE BUT NOT OPTIMIZED
+
+TO DO NEXT (AK 15AUG2017)
+- Figure out how to make rgl.snapshot work OK when the user provides file name as a string. At present it only works if you do not put quotes to it
+
+- Solve functions for method = "TPS"

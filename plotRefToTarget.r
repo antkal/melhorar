@@ -191,7 +191,7 @@ plotRefToTarget<-function(M1,M2,mesh= NULL,outline=NULL,method=c("TPS","vector",
     }
     
     #for shape predictor k=3; NEED A CHECK for the shapes coming from shape predictor....
-    if(method=="TPS"){
+    if(method=="TPS"&& all.equal(rep(0,nrow(M1)), M1[,3])==FALSE){
       layout3d(matrix(c(1,2),1,2))
       # par(mar=c(1,1,1,1))
       tps(M1[,1:2],M2[,1:2],gP$n.col.cell, sz=gP$tar.pt.size, pt.bg=gP$tar.pt.bg, 

@@ -7,6 +7,7 @@
 5. Ellipsis programming to pass plotRefToTarget arguments - DONE
 6. Add point to the clicked point selected by the user in the biplot - DONE
 7. Ask user: save grid? - DONE BUT NOT OPTIMIZED
+8. Return coordinates in console of picked point - DONE
 
 TO DO NEXT (AK 15AUG2017)
 - Figure out how to make rgl.snapshot work OK when the user provides file name as a string. At present it only works if you do not put quotes to it

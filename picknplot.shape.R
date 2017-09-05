@@ -18,6 +18,8 @@ picknplot.shape <- function(A, ...){
   plot(PC, asp = 1, pch = 19)
   cat("Pick a point in the shape space", "\n")
   picked.pts <- unlist(locator(n = 1, type = "p", pch = 20, col = "red", cex = 0.5))
+  cat("Picked point coordinates are:", "\n")
+  cat(picked.pts, "\n") 
   preds <- shape.predictor(A, x = PC, Intercept = FALSE, pred1 = picked.pts) 
   k <- dim(A)[2]
   if (k==2) {

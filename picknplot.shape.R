@@ -1,4 +1,5 @@
 library(geomorph)
+source("plotRefToTarget.R")
 
 # Example data
 # 2d
@@ -36,7 +37,7 @@ picknplot.shape <- function(A, ...){
   }
   ans <- readline("Save deformation grid as png file (y/n)? ")
   if(ans=="y") {
-    file.name <- readline("Please provide file name for saving deformation grid ")
+    file.name <- readline("Please provide file name for saving deformation grid (without quotes) ")
     rgl.snapshot(file = file.name)
   }
   if(ans=="n"){
@@ -45,8 +46,8 @@ picknplot.shape <- function(A, ...){
 }
 
 # try it out for 2d (method = "TPS" not available yet in rgl machine)
-picknplot.shape(Y.gpa$coords, method = "points", mag = 20) 
+picknplot.shape(Y.gpa$coords, method = "TPS", mag = 1) 
 
 # try it out for 3d
-picknplot.shape(Y3d.gpa$coords, method = "points", mag = 10) 
+picknplot.shape(Y3d.gpa$coords, method = "TPS", mag = 10) 
 

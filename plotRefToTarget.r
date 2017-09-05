@@ -168,66 +168,109 @@ plotRefToTarget<-function(M1,M2,mesh= NULL,outline=NULL,method=c("TPS","vector",
   }
   
   if(k==3){
-    if(method=="TPS"&& mean(M1[,3])!=0){
-      old.par <- par(no.readonly = TRUE)
-      layout(matrix(c(1,2),1,2))
-      par(mar=c(1,1,1,1))
-      tps(M1[,1:2],M2[,1:2],gP$n.col.cell, sz=gP$tar.pt.size, pt.bg=gP$tar.pt.bg, grid.col=gP$grid.col, 
-          grid.lwd=gP$grid.lwd, grid.lty=gP$grid.lty, refpts=useRefPts)
-      if(is.null(links)==FALSE){
-        for (i in 1:nrow(links)){
-          linkcol <- rep(gP$tar.link.col,nrow(links))[1:nrow(links)]
-          linklwd <- rep(gP$tar.link.lwd,nrow(links))[1:nrow(links)]
-          linklty <- rep(gP$tar.link.lty,nrow(links))[1:nrow(links)]
-          segments(M2[links[i,1],1],M2[links[i,1],2],
-                   M2[links[i,2],1],M2[links[i,2],2],
-                   col=linkcol[i],lty=linklty[i],lwd=linklwd[i])
-        }
-      }
-      title("X,Y tps grid")
-      b<-c(1,3)
-      tps(M1[,b],M2[,b],gP$n.col.cell, sz=gP$tar.pt.size, pt.bg=gP$tar.pt.bg, grid.col=gP$grid.col, 
-          grid.lwd=gP$grid.lwd, grid.lty=gP$grid.lty, refpts=useRefPts)
+    #for shape predictor k=2; checks for k=3 with 3rd dim all 0s
+    if(method=="TPS" && all.equal(rep(0,nrow(M1)), M1[,3])==TRUE){
+      tps(M1[,1:2],M2[,1:2],gP$n.col.cell, sz=gP$tar.pt.size, pt.bg=gP$tar.pt.bg, 
+          grid.col=gP$grid.col, grid.lwd=gP$grid.lwd, grid.lty=gP$grid.lty, refpts=useRefPts, 
+          k3=0)
       if(is.null(links)==FALSE){
         linkcol <- rep(gP$tar.link.col,nrow(links))[1:nrow(links)]
         linklwd <- rep(gP$tar.link.lwd,nrow(links))[1:nrow(links)]
         linklty <- rep(gP$tar.link.lty,nrow(links))[1:nrow(links)]
         for (i in 1:nrow(links)){
-          segments(M2[links[i,1],1],M2[links[i,1],3],
-                   M2[links[i,2],1],M2[links[i,2],3],
-                   col=linkcol[i],lty=linklty[i],lwd=linklwd[i])
+          segments3d(rbind(M2[links[i,1],],M2[links[i,2],]),
+                     col=linkcol[i],lty=linklwd[i],lwd=linklty[i])
         }
       }
-      title("Y,Z tps grid")
-      layout(1)
-      on.exit(par(old.par))
+      if(label == TRUE){text3d(M2, texts = paste(1:dim(M2)[1]), adj=(gP$txt.adj+gP$pt.size),
+                               pos=(gP$txt.pos+gP$pt.size),cex=gP$txt.cex,col=gP$txt.col)}
+      if(!is.null(outline)){
+        curve.warp <- tps2d(outline, M1[,1:2],M2[,1:2])
+        points3d(cbind(curve.warp,0), size=gP$tar.out.cex, col=gP$tar.out.col) 
+      }
     }
     
-    #for shape predictor
-    # Check for k=3 by 3rd dim is 0: mean(M1[,3])==0
-    
-    if(method=="TPS" && mean(M1[,3])==0){
-        tps(M1[,1:2],M2[,1:2],gP$n.col.cell, sz=gP$tar.pt.size, pt.bg=gP$tar.pt.bg, 
-            grid.col=gP$grid.col, grid.lwd=gP$grid.lwd, grid.lty=gP$grid.lty, refpts=useRefPts, 
-            k3=0)
-      # Below not yet edited for rgl plotting
-        if(is.null(links)==FALSE){
-          linkcol <- rep(gP$tar.link.col,nrow(links))[1:nrow(links)]
-          linklwd <- rep(gP$tar.link.lwd,nrow(links))[1:nrow(links)]
-          linklty <- rep(gP$tar.link.lty,nrow(links))[1:nrow(links)]
-          for (i in 1:nrow(links)){
-            segments(M2[links[i,1],1],M2[links[i,1],2],M2[links[i,2],1],M2[links[i,2],2],
-                     col=linkcol[i],lty=linklty[i],lwd=linklwd[i])
-          }
+    #for shape predictor k=3; NEED A CHECK for the shapes coming from shape predictor....
+    if(method=="TPS"){
+      layout3d(matrix(c(1,2),1,2))
+      # par(mar=c(1,1,1,1))
+      tps(M1[,1:2],M2[,1:2],gP$n.col.cell, sz=gP$tar.pt.size, pt.bg=gP$tar.pt.bg, 
+          grid.col=gP$grid.col, grid.lwd=gP$grid.lwd, grid.lty=gP$grid.lty, refpts=useRefPts,
+          k3=0)
+      title3d("X,Y tps grid") # doesn't work?
+      if(is.null(links)==FALSE){
+        linkcol <- rep(gP$tar.link.col,nrow(links))[1:nrow(links)]
+        linklwd <- rep(gP$tar.link.lwd,nrow(links))[1:nrow(links)]
+        linklty <- rep(gP$tar.link.lty,nrow(links))[1:nrow(links)]
+        for (i in 1:nrow(links)){
+          segments3d(rbind(M2[links[i,1],],M2[links[i,2],]),
+                     col=linkcol[i],lty=linklwd[i],lwd=linklty[i])
         }
-        if(label == TRUE){text(M2, label=paste(1:dim(M2)[1]),adj=gP$txt.adj,
-                               pos=gP$txt.pos,cex=gP$txt.cex,col=gP$txt.col)}
-        if(!is.null(outline)){
-          curve.warp <- tps2d(outline, M1, M2)
-          points(curve.warp,pch=19, cex=gP$tar.out.cex, col=gP$tar.out.col) 
-        }
-        if(useRefPts==FALSE) points(M2,pch=21,cex=gP$tar.pt.size, bg=gP$tar.pt.bg) else points(M1,pch=21,cex=gP$pt.size, bg=gP$pt.bg)
       }
+      if(label == TRUE){text3d(M2, texts = paste(1:dim(M2)[1]), adj=(gP$txt.adj+gP$pt.size),
+                               pos=(gP$txt.pos+gP$pt.size),cex=gP$txt.cex,col=gP$txt.col)} 
+      if(!is.null(outline)){
+        curve.warp <- tps2d(outline, M1[,1:2],M2[,1:2])
+        points3d(cbind(curve.warp,0), size=gP$tar.out.cex, col=gP$tar.out.col) 
+      }
+      b<-c(1,3)
+      tps(M1[,b],M2[,b],gP$n.col.cell, sz=gP$tar.pt.size, pt.bg=gP$tar.pt.bg, 
+          grid.col=gP$grid.col, grid.lwd=gP$grid.lwd, grid.lty=gP$grid.lty, refpts=useRefPts,
+          k3=0)
+      title3d("X,Y tps grid") # doesn't work?
+      if(is.null(links)==FALSE){
+        linkcol <- rep(gP$tar.link.col,nrow(links))[1:nrow(links)]
+        linklwd <- rep(gP$tar.link.lwd,nrow(links))[1:nrow(links)]
+        linklty <- rep(gP$tar.link.lty,nrow(links))[1:nrow(links)]
+        for (i in 1:nrow(links)){
+          segments3d(rbind(M2[links[i,1],],M2[links[i,2],]),
+                     col=linkcol[i],lty=linklwd[i],lwd=linklty[i])
+        }
+      }
+      if(label == TRUE){text3d(M2[,b], texts = paste(1:dim(M2)[1]), adj=(gP$txt.adj+gP$pt.size),
+                               pos=(gP$txt.pos+gP$pt.size),cex=gP$txt.cex,col=gP$txt.col)} # doesn't work?
+      if(!is.null(outline)){
+        curve.warp <- tps2d(outline, M1[,b],M2[,b])
+        points3d(cbind(curve.warp,0), size=gP$tar.out.cex, col=gP$tar.out.col) 
+      }
+    }
+    
+    
+    # # Regular TPS plotting for 3D objects
+    # if(method=="TPS"&& all.equal(rep(0,nrow(M1)), M1[,3])==FALSE){
+    #   old.par <- par(no.readonly = TRUE)
+    #   layout(matrix(c(1,2),1,2))
+    #   par(mar=c(1,1,1,1))
+    #   tps(M1[,1:2],M2[,1:2],gP$n.col.cell, sz=gP$tar.pt.size, pt.bg=gP$tar.pt.bg, grid.col=gP$grid.col, 
+    #       grid.lwd=gP$grid.lwd, grid.lty=gP$grid.lty, refpts=useRefPts)
+    #   if(is.null(links)==FALSE){
+    #     for (i in 1:nrow(links)){
+    #       linkcol <- rep(gP$tar.link.col,nrow(links))[1:nrow(links)]
+    #       linklwd <- rep(gP$tar.link.lwd,nrow(links))[1:nrow(links)]
+    #       linklty <- rep(gP$tar.link.lty,nrow(links))[1:nrow(links)]
+    #       segments(M2[links[i,1],1],M2[links[i,1],2],
+    #                M2[links[i,2],1],M2[links[i,2],2],
+    #                col=linkcol[i],lty=linklty[i],lwd=linklwd[i])
+    #     }
+    #   }
+    #   title("X,Y tps grid")
+    #   b<-c(1,3)
+    #   tps(M1[,b],M2[,b],gP$n.col.cell, sz=gP$tar.pt.size, pt.bg=gP$tar.pt.bg, grid.col=gP$grid.col, 
+    #       grid.lwd=gP$grid.lwd, grid.lty=gP$grid.lty, refpts=useRefPts)
+    #   if(is.null(links)==FALSE){
+    #     linkcol <- rep(gP$tar.link.col,nrow(links))[1:nrow(links)]
+    #     linklwd <- rep(gP$tar.link.lwd,nrow(links))[1:nrow(links)]
+    #     linklty <- rep(gP$tar.link.lty,nrow(links))[1:nrow(links)]
+    #     for (i in 1:nrow(links)){
+    #       segments(M2[links[i,1],1],M2[links[i,1],3],
+    #                M2[links[i,2],1],M2[links[i,2],3],
+    #                col=linkcol[i],lty=linklty[i],lwd=linklwd[i])
+    #     }
+    #   }
+    #   title("Y,Z tps grid")
+    #   layout(1)
+    #   on.exit(par(old.par))
+    # }
     
     if(method=="vector"){
       if(axes==TRUE){
@@ -316,7 +359,7 @@ tps<-function(matr, matt, n,sz=1.5, pt.bg="black",
     plot3d(ngrid, cex=0.2,aspect=FALSE,axes=FALSE,xlab="",ylab="",zlab="")
     for (i in 1:m){lines3d(ngrid[(1:n)+(i-1)*n,], col=grid.col,lwd=grid.lwd,lty=grid.lty)}
     for (i in 1:n){lines3d(ngrid[(1:m)*n-i+1,], col=grid.col,lwd=grid.lwd,lty=grid.lty)}
-    if(refpts==FALSE) points3d(cbind(matt,0),pch=21,bg=pt.bg,cex=sz) else points3d(cbind(matr,0),pch=21,bg=pt.bg,cex=sz)
+    if(refpts==FALSE) points3d(cbind(matt,0),col=pt.bg,size=sz*10) else points3d(cbind(matr,0),col=pt.bg,size=sz*10)
   }
 }
 

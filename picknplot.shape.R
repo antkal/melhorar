@@ -46,8 +46,9 @@ picknplot.shape <- function(A, ...){
 }
 
 # try it out for 2d (method = "TPS" not available yet in rgl machine)
-picknplot.shape(Y.gpa$coords, method = "TPS", mag = 1) 
+picknplot.shape(Y.gpa$coords, method = "TPS", mag = 1, links=plethodon$links) 
+picknplot.shape(Y.gpa$coords, method = "TPS", mag = 1, outline=plethodon$outline) 
 
 # try it out for 3d
-picknplot.shape(Y3d.gpa$coords, method = "TPS", mag = 10) 
+picknplot.shape(Y3d.gpa$coords, method = "TPS", mag = 1) 
 

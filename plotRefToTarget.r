@@ -166,8 +166,9 @@ plotRefToTarget<-function(M1,M2,mesh= NULL,outline=NULL,method=c("TPS","vector",
       stop("Surface plotting for 3D landmarks only.")
     }      
   }
+  
   if(k==3){
-    if(method=="TPS"){
+    if(method=="TPS"&& mean(M1[,3])!=0){
       old.par <- par(no.readonly = TRUE)
       layout(matrix(c(1,2),1,2))
       par(mar=c(1,1,1,1))
@@ -201,6 +202,33 @@ plotRefToTarget<-function(M1,M2,mesh= NULL,outline=NULL,method=c("TPS","vector",
       layout(1)
       on.exit(par(old.par))
     }
+    
+    #for shape predictor
+    # Check for k=3 by 3rd dim is 0: mean(M1[,3])==0
+    
+    if(method=="TPS" && mean(M1[,3])==0){
+        tps(M1[,1:2],M2[,1:2],gP$n.col.cell, sz=gP$tar.pt.size, pt.bg=gP$tar.pt.bg, 
+            grid.col=gP$grid.col, grid.lwd=gP$grid.lwd, grid.lty=gP$grid.lty, refpts=useRefPts, 
+            k3=0)
+      # Below not yet edited for rgl plotting
+        if(is.null(links)==FALSE){
+          linkcol <- rep(gP$tar.link.col,nrow(links))[1:nrow(links)]
+          linklwd <- rep(gP$tar.link.lwd,nrow(links))[1:nrow(links)]
+          linklty <- rep(gP$tar.link.lty,nrow(links))[1:nrow(links)]
+          for (i in 1:nrow(links)){
+            segments(M2[links[i,1],1],M2[links[i,1],2],M2[links[i,2],1],M2[links[i,2],2],
+                     col=linkcol[i],lty=linklty[i],lwd=linklwd[i])
+          }
+        }
+        if(label == TRUE){text(M2, label=paste(1:dim(M2)[1]),adj=gP$txt.adj,
+                               pos=gP$txt.pos,cex=gP$txt.cex,col=gP$txt.col)}
+        if(!is.null(outline)){
+          curve.warp <- tps2d(outline, M1, M2)
+          points(curve.warp,pch=19, cex=gP$tar.out.cex, col=gP$tar.out.col) 
+        }
+        if(useRefPts==FALSE) points(M2,pch=21,cex=gP$tar.pt.size, bg=gP$tar.pt.bg) else points(M1,pch=21,cex=gP$pt.size, bg=gP$pt.bg)
+      }
+    
     if(method=="vector"){
       if(axes==TRUE){
       plot3d(M1,type="s",col=gP$pt.bg,size=gP$pt.size,aspect=FALSE,...)}
@@ -265,7 +293,7 @@ plotRefToTarget<-function(M1,M2,mesh= NULL,outline=NULL,method=c("TPS","vector",
 #
 #
 tps<-function(matr, matt, n,sz=1.5, pt.bg="black",
-              grid.col="black", grid.lwd=1, grid.lty=1, refpts=FALSE){		#DCA: altered from J. Claude: 2D only
+              grid.col="black", grid.lwd=1, grid.lty=1, refpts=FALSE, k3=NULL){		#DCA: altered from J. Claude: 2D only
   xm<-min(matr[,1])
   ym<-min(matr[,2])
   xM<-max(matr[,1])
@@ -276,10 +304,20 @@ tps<-function(matr, matt, n,sz=1.5, pt.bg="black",
   m<-round(0.5+(n-1)*(2/5*rX+ yM-ym)/(2/5*rX+ xM-xm))
   M<-as.matrix(expand.grid(a,b))
   ngrid<-tps2d(M,matr,matt)
-  plot(ngrid, cex=0.2,asp=1,axes=FALSE,xlab="",ylab="")
-  for (i in 1:m){lines(ngrid[(1:n)+(i-1)*n,], col=grid.col,lwd=grid.lwd,lty=grid.lty)}
-  for (i in 1:n){lines(ngrid[(1:m)*n-i+1,], col=grid.col,lwd=grid.lwd,lty=grid.lty)}
-  if(refpts==FALSE) points(matt,pch=21,bg=pt.bg,cex=sz) else points(matr,pch=21,bg=pt.bg,cex=sz)
+  if(is.null(k3)){
+    plot(ngrid, cex=0.2,asp=1,axes=FALSE,xlab="",ylab="")
+    for (i in 1:m){lines(ngrid[(1:n)+(i-1)*n,], col=grid.col,lwd=grid.lwd,lty=grid.lty)}
+    for (i in 1:n){lines(ngrid[(1:m)*n-i+1,], col=grid.col,lwd=grid.lwd,lty=grid.lty)}
+    if(refpts==FALSE) points(matt,pch=21,bg=pt.bg,cex=sz) else points(matr,pch=21,bg=pt.bg,cex=sz)
+  }
+  # added in for shape.predictor; plots in rgl window
+  if(k3 == 0){
+    ngrid <- cbind(ngrid,0)
+    plot3d(ngrid, cex=0.2,aspect=1,axes=FALSE,xlab="",ylab="",zlab="")
+    for (i in 1:m){lines3d(ngrid[(1:n)+(i-1)*n,], col=grid.col,lwd=grid.lwd,lty=grid.lty)}
+    for (i in 1:n){lines3d(ngrid[(1:m)*n-i+1,], col=grid.col,lwd=grid.lwd,lty=grid.lty)}
+    if(refpts==FALSE) points3d(cbind(matt,0),pch=21,bg=pt.bg,cex=sz) else points3d(cbind(matr,0),pch=21,bg=pt.bg,cex=sz)
+  }
 }
 
 # tps2d

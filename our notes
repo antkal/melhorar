@@ -8,7 +8,7 @@
 6. Add point to the clicked point selected by the user in the biplot - DONE
 7. Ask user: save grid? - DONE BUT NOT OPTIMIZED
 8. Return coordinates in console of picked point - DONE
-
+ 
 TO DO NEXT (5SEP2017)
 - Improve shape.animation() options. Do we want to add an option for saving as video? In the future, this may be generalized as a wrapper of shape.predictor()
 

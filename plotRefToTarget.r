@@ -313,7 +313,7 @@ tps<-function(matr, matt, n,sz=1.5, pt.bg="black",
   # added in for shape.predictor; plots in rgl window
   if(k3 == 0){
     ngrid <- cbind(ngrid,0)
-    plot3d(ngrid, cex=0.2,aspect=1,axes=FALSE,xlab="",ylab="",zlab="")
+    plot3d(ngrid, cex=0.2,aspect=FALSE,axes=FALSE,xlab="",ylab="",zlab="")
     for (i in 1:m){lines3d(ngrid[(1:n)+(i-1)*n,], col=grid.col,lwd=grid.lwd,lty=grid.lty)}
     for (i in 1:n){lines3d(ngrid[(1:m)*n-i+1,], col=grid.col,lwd=grid.lwd,lty=grid.lty)}
     if(refpts==FALSE) points3d(cbind(matt,0),pch=21,bg=pt.bg,cex=sz) else points3d(cbind(matr,0),pch=21,bg=pt.bg,cex=sz)

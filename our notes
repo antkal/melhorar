@@ -9,9 +9,18 @@
 7. Ask user: save grid? - DONE BUT NOT OPTIMIZED
 8. Return coordinates in console of picked point - DONE
 
-TO DO NEXT (AK 15AUG2017)
-- Figure out how to make rgl.snapshot work OK when the user provides file name as a string. At present it only works if you do not put quotes to it
-
+TO DO NEXT (5SEP2017)
 - Improve shape.animation() options. Do we want to add an option for saving as video? In the future, this may be generalized as a wrapper of shape.predictor()
 
-- Solve functions for method = "TPS"
+- Add while loop to keep picknplot running until the user wants to stop
+
+- Expand options to make it work with other plots (allometry, pls). 
+For this we need to create specific S3 classes to be read by picknplot
+
+CHECKS TO PICKNPLOT
+- cf 3d normal plotting
+- cf if user can pass title arg
+
+CREATE PCA FUNCTION (S3) - GM.prcomp
+- merge analytical and output parts of plotTangentSpace and plotGMPhyloMorphoSpace
+- make S3 class "GMpca" so it can be read by picknplot

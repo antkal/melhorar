@@ -26,12 +26,14 @@ picknplot.shape <- function(A, ...){
   if (k==2) {
     plot.args$M1 <- cbind(mshape(A), 0)
     plot.args$M2 <- cbind(preds$pred1, 0)
+    class(plot.args$M2) <- "predshape.k2"
     view3d(phi = 0, fov = 30, interactive = FALSE) 
     do.call(plotRefToTarget, plot.args)
   }
   if (k==3){
     plot.args$M1 <- mshape(A)
     plot.args$M2 <- preds$pred1
+    class(plot.args$M2) <- "predshape.k3"
     view3d(phi = 0, fov = 30, interactive = TRUE) 
     do.call(plotRefToTarget,  args = plot.args)
   }

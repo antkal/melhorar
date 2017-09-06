@@ -168,8 +168,8 @@ plotRefToTarget<-function(M1,M2,mesh= NULL,outline=NULL,method=c("TPS","vector",
   }
   
   if(k==3){
-    #for shape predictor k=2; checks for k=3 with 3rd dim all 0s
-    if(method=="TPS" && all.equal(rep(0,nrow(M1)), M1[,3])==TRUE){
+    #for shape predictor k=2
+    if(method=="TPS" && class(M2) == "predshape.k2"){
       tps(M1[,1:2],M2[,1:2],gP$n.col.cell, sz=gP$tar.pt.size, pt.bg=gP$tar.pt.bg, 
           grid.col=gP$grid.col, grid.lwd=gP$grid.lwd, grid.lty=gP$grid.lty, refpts=useRefPts, 
           k3=0)
@@ -189,9 +189,8 @@ plotRefToTarget<-function(M1,M2,mesh= NULL,outline=NULL,method=c("TPS","vector",
         points3d(cbind(curve.warp,0), size=gP$tar.out.cex, col=gP$tar.out.col) 
       }
     }
-    
-    #for shape predictor k=3; NEED A CHECK for the shapes coming from shape predictor....
-    if(method=="TPS"&& all.equal(rep(0,nrow(M1)), M1[,3])==FALSE){
+    #for shape predictor k=3
+    if(method=="TPS"&& class(M2) == "predshape.k3"){
       layout3d(matrix(c(1,2),1,2))
       # par(mar=c(1,1,1,1))
       tps(M1[,1:2],M2[,1:2],gP$n.col.cell, sz=gP$tar.pt.size, pt.bg=gP$tar.pt.bg, 

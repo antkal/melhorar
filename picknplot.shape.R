@@ -34,7 +34,8 @@ picknplot.shape <- function(A, ...){
     plot.args$M1 <- mshape(A)
     plot.args$M2 <- preds$pred1
     class(plot.args$M2) <- "predshape.k3"
-    view3d(phi = 0, fov = 30, interactive = TRUE) 
+    if(plot.args$method == "TPS"){view3d(phi = 0, fov = 30, interactive = FALSE)}
+    else view3d(phi = 0, fov = 30, interactive = TRUE) 
     do.call(plotRefToTarget,  args = plot.args)
   }
   ans <- readline("Save deformation grid as png file (y/n)? ")
@@ -53,4 +54,6 @@ picknplot.shape(Y.gpa$coords, method = "TPS", mag = 1, outline=plethodon$outline
 
 # try it out for 3d
 picknplot.shape(Y3d.gpa$coords, method = "TPS", mag = 1) 
+scallinks <- matrix(c(1,rep(2:16, each=2),1), nrow=16, byrow=TRUE)
+picknplot.shape(Y3d.gpa$coords, method = "TPS", mag = 1, links = scallinks) 
 

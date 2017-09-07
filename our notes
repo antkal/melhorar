@@ -12,7 +12,7 @@
 TO DO NEXT (5SEP2017)
 - Improve shape.animation() options. Do we want to add an option for saving as video? In the future, this may be generalized as a wrapper of shape.predictor()
 
-- Add while loop to keep picknplot running until the user wants to stop
+- Add while loop to keep picknplot running until the user wants to stop - DONE
 
 - Expand options to make it work with other plots (allometry, pls). 
 For this we need to create specific S3 classes to be read by picknplot

@@ -1,19 +1,17 @@
 15AUG2017 - Add options to picknplot
-
 1. Figure out saving from rgl machine - DONE
 2. Add method to arguments (copy Mike´s option l. 76 of plotRefToTarget) - DONE
 3. Check dim(A) (copy l. 82 of plotRefToTarget) - DONE
 4. Allow rotation for real 3d shapes, but not for 2d - DONE
 5. Ellipsis programming to pass plotRefToTarget arguments - DONE
 6. Add point to the clicked point selected by the user in the biplot - DONE
-7. Ask user: save grid? - DONE BUT NOT OPTIMIZED
+7. Ask user: save grid? - DONE
 8. Return coordinates in console of picked point - DONE
  
-TO DO NEXT (5SEP2017)
+5SEP 2017 - TO DO NEXT
+- Solve 3d plotting in rgl machine (needs modification of plotRefToTarget)
 - Improve shape.animation() options. Do we want to add an option for saving as video? In the future, this may be generalized as a wrapper of shape.predictor()
-
 - Add while loop to keep picknplot running until the user wants to stop - DONE
-
 - Expand options to make it work with other plots (allometry, pls). 
 For this we need to create specific S3 classes to be read by picknplot
 

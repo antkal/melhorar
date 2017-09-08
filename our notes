@@ -14,6 +14,11 @@
 - Add while loop to keep picknplot running until the user wants to stop - DONE
 - Expand options to make it work with other plots (allometry, pls). 
 For this we need to create specific S3 classes to be read by picknplot
+   - So if its a PCA: A= 3d array, x = 2d matrix of PC scores, Intercept = FALSE
+   - for Allometry: A= 3d array, x = log centroid size, Intercept = TRUE
+   - or: A= 3d array, x = Reg.proj, Intercept = FALSE
+   - or: A= 3d array, x = pred.val, Intercept = FALSE
+   - PLS: A= 3d array, x = the other matrix/array, Intercept = FALSE, method = PLS
 
 CHECKS TO PICKNPLOT
 - cf 3d normal plotting

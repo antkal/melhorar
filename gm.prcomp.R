@@ -27,10 +27,33 @@ gm.prcomp <- function (A, phy = NULL, ...){
 
   if(!is.null(phy)){
     if (!inherits(phy, "phylo"))
-      stop("tree must be of class 'phylo.'")
+      stop("Tree must be of class 'phylo.'")
     if (!is.binary.tree(phy)) 
-      stop("tree is not fully bifurcating (consider 'multi2di' in ape.")
+      stop("Tree is not fully bifurcating (consider 'multi2di' in ape.")
+    N <- length(phy$tip.label)
+    Nnode <- phy$Nnode
+    if(N!=n)
+      stop("Number of taxa in data matrix and tree are not equal.")
+    if(is.null(rownames(x)))
+       warning("Shape dataset does not include species names. Assuming the order of data matches phy$tip.label")
+    x <- x[phy$tip.label, ]  
+    anc.states <- NULL   #follows fastAnc in phytools
+    for (i in 1:ncol(x)){
+      x1 <- x[,i]
+      tmp <- vector()
+      for (j in 1:Nnode + N) {
+        a <- multi2di(root(phy, node = j))
+        tmp[j - N] <- ace(x1, a, method = "pic")$ace[1]
+        }
+      anc.states <- cbind(anc.states, tmp)
+      }
+    colnames(anc.states) <- NULL
+    row.names(anc.states) <- 1:length(tmp)
+    all.data <- rbind(x, anc.states)  
     
+    
+    
+ 
   }
   
   if(is.null(tol)){
@@ -40,6 +63,7 @@ gm.prcomp <- function (A, phy = NULL, ...){
     if(length(cd) < length(d)) cd <- cd + 1
     tol <- max(c(d[cd]/d[1], 0.005))
   }
+
   pc.res <- prcomp(x, center = center, scale. = scale., retx = retx, tol = tol)
   pcdata <- pc.res$x
   shapes <- shape.names <- NULL

@@ -27,3 +27,14 @@ CHECKS TO PICKNPLOT
 CREATE PCA FUNCTION (S3) - GM.prcomp
 - merge analytical and output parts of plotTangentSpace and plotGMPhyloMorphoSpace
 - make S3 class "GMpca" so it can be read by picknplot
+- AK DOUBTs:  - center, scale, tol as in plotTangentSpace OK for phyloPCA?
+              - lines 62-65 in plotGMPhyloMorphoSpace superfluous? If l60 runs, they don´t
+                (also correct typo "not not" in l.61)
+              - warning instead of error for missing sps names (labels)
+
+FOR FUTURE INTEGRATION WITH OTHER PLOTTING FUNCTIONS (AK note 17SEP)
+- attribute specific S3 classes to analytical functions (pca, pls, allometry, anova etc)
+- plot(bla) then calls the specific plotting tools for each, i.e. plot.pca, plot.pls etc
+- picknplot(plot(bla)) to enable clicking in the plot to see shapes
+
+

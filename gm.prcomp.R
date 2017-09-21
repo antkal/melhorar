@@ -4,6 +4,7 @@ library(geomorph)
 data(plethspecies) 
 Y.gpa<-gpagen(plethspecies$land)
 
+source("geomorph.support.code.r")
 
 gm.prcomp <- function (A, phy = NULL, ...){
   if (length(dim(A)) != 3) {
@@ -19,9 +20,7 @@ gm.prcomp <- function (A, phy = NULL, ...){
   center <- dots$center
   if(is.null(center)) center <- TRUE
   tol <- dots$tol
-  k <- dim(A)[2]
-  p <- dim(A)[1]
-  n <- dim(A)[3]
+  p <- dim(A)[1]; k <- dim(A)[2]; n <- dim(A)[3]
   ref <- mshape(A)
   x <- two.d.array(A)
 
@@ -30,30 +29,22 @@ gm.prcomp <- function (A, phy = NULL, ...){
       stop("Tree must be of class 'phylo.'")
     if (!is.binary.tree(phy)) 
       stop("Tree is not fully bifurcating (consider 'multi2di' in ape.")
-    N <- length(phy$tip.label)
-    Nnode <- phy$Nnode
+    N <- length(phy$tip.label); Nnode <- phy$Nnode
     if(N!=n)
       stop("Number of taxa in data matrix and tree are not equal.")
-    if(is.null(rownames(x)))
-       warning("Shape dataset does not include species names. Assuming the order of data matches phy$tip.label")
-    x <- x[phy$tip.label, ]  
-    anc.states <- NULL   #follows fastAnc in phytools
-    for (i in 1:ncol(x)){
-      x1 <- x[,i]
-      tmp <- vector()
-      for (j in 1:Nnode + N) {
-        a <- multi2di(root(phy, node = j))
-        tmp[j - N] <- ace(x1, a, method = "pic")$ace[1]
-        }
-      anc.states <- cbind(anc.states, tmp)
-      }
-    colnames(anc.states) <- NULL
-    row.names(anc.states) <- 1:length(tmp)
-    all.data <- rbind(x, anc.states)  
+    if(is.null(rownames(x))) {
+      warning("Shape dataset does not include species names. Assuming the order of data matches phy$tip.label")
+    } else x <- x[phy$tip.label, ]  
     
+    # PhyloPCA (follows phylo.integration code)
+    phy.parts <- phylo.mat(x,phy)
+    invC <- phy.parts$invC; D.mat <- phy.parts$D.mat
     
-    
- 
+    one <- matrix(1,nrow(x)); I <- diag(1,nrow(x)) 
+    Ptrans <- D.mat%*%(I-one%*%crossprod(one,invC)/sum(invC))
+    x <- Ptrans%*%x
+    pca <- La.svd(x)
+    PCscores <- x %*% t(pca$vt)
   }
   
   if(is.null(tol)){
@@ -64,6 +55,9 @@ gm.prcomp <- function (A, phy = NULL, ...){
     tol <- max(c(d[cd]/d[1], 0.005))
   }
 
+  
+  
+  
   pc.res <- prcomp(x, center = center, scale. = scale., retx = retx, tol = tol)
   pcdata <- pc.res$x
   shapes <- shape.names <- NULL

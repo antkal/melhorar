@@ -12,13 +12,6 @@
 - Solve 3d plotting in rgl machine (needs modification of plotRefToTarget) - DONE
 - Improve shape.animation() options. Do we want to add an option for saving as video? In the future, this may be generalized as a wrapper of shape.predictor()
 - Add while loop to keep picknplot running until the user wants to stop - DONE
-- Expand options to make it work with other plots (allometry, pls). 
-For this we need to create specific S3 classes to be read by picknplot
-   - So if its a PCA: A= 3d array, x = 2d matrix of PC scores, Intercept = FALSE
-   - for Allometry: A= 3d array, x = log centroid size, Intercept = TRUE
-   - or: A= 3d array, x = Reg.proj, Intercept = FALSE
-   - or: A= 3d array, x = pred.val, Intercept = FALSE
-   - PLS: A= 3d array, x = the other matrix/array, Intercept = FALSE, method = PLS
 
 CHECKS TO PICKNPLOT
 - cf 3d normal plotting
@@ -32,9 +25,29 @@ CREATE PCA FUNCTION (S3) - GM.prcomp
                 (also correct typo "not not" in l.61)
               - warning instead of error for missing sps names (labels)
 
+26SEP2017
+- ADD phylo.pca = F argument, if T runs phylo.pca
+- add shape.ace function (as wrapper of ace): lines 67-77 
+- for regular, return PCscores (NOT adjusted for phylo.mean) and ancestors
+- for phylo.pca, return phylo PCscores and ancestors
+- remember to keep line 80 for plotting
+
+
+
+              
+              
+              
+
 FOR FUTURE INTEGRATION WITH OTHER PLOTTING FUNCTIONS (AK note 17SEP)
 - attribute specific S3 classes to analytical functions (pca, pls, allometry, anova etc)
 - plot(bla) then calls the specific plotting tools for each, i.e. plot.pca, plot.pls etc
 - picknplot(plot(bla)) to enable clicking in the plot to see shapes
+- Expand options to make it work with other plots (allometry, pls). 
+For this we need to create specific S3 classes to be read by picknplot
+   - So if its a PCA: A= 3d array, x = 2d matrix of PC scores, Intercept = FALSE
+   - for Allometry: A= 3d array, x = log centroid size, Intercept = TRUE
+   - or: A= 3d array, x = Reg.proj, Intercept = FALSE
+   - or: A= 3d array, x = pred.val, Intercept = FALSE
+   - PLS: A= 3d array, x = the other matrix/array, Intercept = FALSE, method = PLS
 
 

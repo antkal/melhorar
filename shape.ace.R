@@ -1,5 +1,5 @@
-# Separate function for ace of GM data
-#follows fastAnc in phytools
+# Function for ace of GM data
+# follows fastAnc in phytools
 
 shape.ace <- function(x, phy){
   N <- length(phy$tip.label)

@@ -5,8 +5,9 @@ data(plethspecies)
 Y.gpa<-gpagen(plethspecies$land)
 
 source("geomorph.support.code.r")
+source("shape.ace.R")
 
-gm.prcomp <- function (A, phy = NULL, ...){
+gm.prcomp <- function (A, phy = NULL, phylo.pca = FALSE, ...){
   if (length(dim(A)) != 3) {
     stop("Data matrix not a 3D array (see 'arrayspecs').") }
   if(any(is.na(A))==T){
@@ -22,31 +23,35 @@ gm.prcomp <- function (A, phy = NULL, ...){
   tol <- dots$tol
   p <- dim(A)[1]; k <- dim(A)[2]; n <- dim(A)[3]
   ref <- mshape(A)
-  x <- two.d.array(A)
+  x <- scale(two.d.array(A), center = center, scale = scale.)
 
   if(!is.null(phy)){
     if (!inherits(phy, "phylo"))
       stop("Tree must be of class 'phylo.'")
     if (!is.binary.tree(phy)) 
-      stop("Tree is not fully bifurcating (consider 'multi2di' in ape.")
+      stop("Tree is not fully bifurcating (consider 'multi2di' in ape).")
     N <- length(phy$tip.label); Nnode <- phy$Nnode
     if(N!=n)
       stop("Number of taxa in data matrix and tree are not equal.")
     if(is.null(rownames(x))) {
       warning("Shape dataset does not include species names. Assuming the order of data matches phy$tip.label")
-    } else x <- x[phy$tip.label, ]  
+    } else x <- x[phy$tip.label, ]
+    anc <- shape.ace(x, phy)
     
-    # PhyloPCA (follows phylo.integration code)
-    phy.parts <- phylo.mat(x,phy)
-    invC <- phy.parts$invC; D.mat <- phy.parts$D.mat
-    
-    one <- matrix(1,nrow(x)); I <- diag(1,nrow(x)) 
-    Ptrans <- D.mat%*%(I-one%*%crossprod(one,invC)/sum(invC))
-    x <- Ptrans%*%x
-    pca <- La.svd(x)
-    PCscores <- x %*% t(pca$vt)
+    if(phylo.pca == T){
+      # Phylogenetic transformation (follows phylo.integration code)
+      phy.parts <- phylo.mat(x, phy)
+      invC <- phy.parts$invC; D.mat <- phy.parts$D.mat
+      one <- matrix(1,nrow(x)); I <- diag(1,nrow(x)) 
+      Ptrans <- D.mat%*%(I-one%*%crossprod(one,invC)/sum(invC))
+      x <- Ptrans%*%x
+    }
   }
-  
+
+  if(is.null(phy) & phylo.pca == T){
+    stop("To perform phylogenetic pca, please provide a phylogeny.")
+    }
+
   if(is.null(tol)){
     d <- prcomp(x)$sdev^2
     cd <-cumsum(d)/sum(d)
@@ -55,10 +60,7 @@ gm.prcomp <- function (A, phy = NULL, ...){
     tol <- max(c(d[cd]/d[1], 0.005))
   }
 
-  
-  
-  
-  pc.res <- prcomp(x, center = center, scale. = scale., retx = retx, tol = tol)
+  pc.res <- prcomp(x, retx = retx, tol = tol)
   pcdata <- pc.res$x
   shapes <- shape.names <- NULL
   for(i in 1:ncol(pcdata)){

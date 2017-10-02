@@ -1,42 +1,22 @@
-15AUG2017 - Add options to picknplot
-1. Figure out saving from rgl machine - DONE
-2. Add method to arguments (copy Mike´s option l. 76 of plotRefToTarget) - DONE
-3. Check dim(A) (copy l. 82 of plotRefToTarget) - DONE
-4. Allow rotation for real 3d shapes, but not for 2d - DONE
-5. Ellipsis programming to pass plotRefToTarget arguments - DONE
-6. Add point to the clicked point selected by the user in the biplot - DONE
-7. Ask user: save grid? - DONE
-8. Return coordinates in console of picked point - DONE
- 
-5SEP 2017 - TO DO NEXT
-- Solve 3d plotting in rgl machine (needs modification of plotRefToTarget) - DONE
-- Improve shape.animation() options. Do we want to add an option for saving as video? In the future, this may be generalized as a wrapper of shape.predictor()
-- Add while loop to keep picknplot running until the user wants to stop - DONE
-
 CHECKS TO PICKNPLOT
-- cf 3d normal plotting
 - cf if user can pass title arg
 
 CREATE PCA FUNCTION (S3) - GM.prcomp
-- merge analytical and output parts of plotTangentSpace and plotGMPhyloMorphoSpace
 - make S3 class "GMpca" so it can be read by picknplot
-- AK DOUBTs:  - center, scale, tol as in plotTangentSpace OK for phyloPCA?
-              - lines 62-65 in plotGMPhyloMorphoSpace superfluous? If l60 runs, they don´t
-                (also correct typo "not not" in l.61)
-              - warning instead of error for missing sps names (labels)
 
 26SEP2017
-- ADD phylo.pca = F argument, if T runs phylo.pca
-- add shape.ace function (as wrapper of ace): lines 67-77 
 - for regular, return PCscores (NOT adjusted for phylo.mean) and ancestors
 - for phylo.pca, return phylo PCscores and ancestors
-- remember to keep line 80 for plotting
+- remember to keep line 80 of plotGMPhyloMorphoSpace for plotting
 
+2OCT2017
+- l.78 of plotGMPhyloMorphoSpace - why PCA on extant and ancestral states? 
+Shouldn't this be the PCA on the raw data, and then project the ancs on that for plotting?
 
-
-              
-              
-              
+- joined picknplot with animation. Some issues:
+  1. method = "TPS" does not work in the animation
+  2. outline arg of plotRefToTarget does not work in either version
+  
 
 FOR FUTURE INTEGRATION WITH OTHER PLOTTING FUNCTIONS (AK note 17SEP)
 - attribute specific S3 classes to analytical functions (pca, pls, allometry, anova etc)

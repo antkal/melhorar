@@ -4,6 +4,10 @@ CHECKS TO PICKNPLOT
 CREATE PCA FUNCTION (S3) - GM.prcomp
 - make S3 class "GMpca" so it can be read by picknplot
 
+03OCT2017
+- Need to check pPCA against phytools implementation
+- Need to return original data if we do phylomorphospace plotting the old way (PCA of shape data and anc states) [but address comment from 20OCT below]
+
 26SEP2017
 - for regular, return PCscores (NOT adjusted for phylo.mean) and ancestors
 - for phylo.pca, return phylo PCscores and ancestors

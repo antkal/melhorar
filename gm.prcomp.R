@@ -76,7 +76,7 @@ gm.prcomp <- function (A, phy = NULL, phylo.pca = FALSE, ...){
   shapes <- lapply(seq(dim(shapes)[3]), function(x) shapes[,,x])
   names(shapes) <- shape.names
   out <- list(pc.summary = summary(pc.res), pc.scores = pcdata, pc.shapes = shapes, 
-              sdev = pc.res$sdev, rotation = pc.res$rotation)
+              sdev = pc.res$sdev, rotation = pc.res$rotation, anc.states = anc)
   class(out) = "gm.prcomp"
   out
 }

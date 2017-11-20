@@ -1,13 +1,15 @@
 library(geomorph)
 
-# Example data (with phylo)
-data(plethspecies) 
-Y.gpa<-gpagen(plethspecies$land)
-
 source("geomorph.support.code.r")
 source("shape.ace.R")
+source("cov.mat.R")
 
-gm.prcomp <- function (A, phy = NULL, phylo.pca = FALSE, ...){
+# Only A: normal, raw PCA, accepts pca arguments through ...
+# A + phy: GMphylomorphospace
+# A + phy + phylo.pca = T: phyloPCA
+# A + COV: other weighed PCA (with catch for phy&cov not implemented)
+
+gm.prcomp <- function (A, phy = NULL, phylo.pca = FALSE, COV = NULL, ...){
   if (length(dim(A)) != 3) {
     stop("Data matrix not a 3D array (see 'arrayspecs').") }
   if(any(is.na(A))==T){
@@ -25,11 +27,18 @@ gm.prcomp <- function (A, phy = NULL, phylo.pca = FALSE, ...){
   ref <- mshape(A)
   x <- scale(two.d.array(A), center = center, scale = scale.)
 
+  if(is.null(phy) & phylo.pca == T){
+    stop("To perform phylogenetic pca, please provide a phylogeny.")
+  }
+  
   if(!is.null(phy)){
     if (!inherits(phy, "phylo"))
       stop("Tree must be of class 'phylo.'")
     if (!is.binary.tree(phy)) 
       stop("Tree is not fully bifurcating (consider 'multi2di' in ape).")
+    if(!is.null(COV)){
+      stop("Method not implemented for weighting with BOTH a phylogeny and another covariance matrix.")
+    }
     N <- length(phy$tip.label); Nnode <- phy$Nnode
     if(N!=n)
       stop("Number of taxa in data matrix and tree are not equal.")
@@ -42,16 +51,24 @@ gm.prcomp <- function (A, phy = NULL, phylo.pca = FALSE, ...){
       # Phylogenetic transformation (follows phylo.integration code)
       phy.parts <- phylo.mat(x, phy)
       invC <- phy.parts$invC; D.mat <- phy.parts$D.mat
-      one <- matrix(1,nrow(x)); I <- diag(1,nrow(x)) 
-      Ptrans <- D.mat%*%(I-one%*%crossprod(one,invC)/sum(invC))
+      one <- matrix(1, nrow(x)); I <- diag(1, nrow(x)) 
+      Ptrans <- D.mat%*%(I-one%*%crossprod(one, invC)/sum(invC))
+      x <- Ptrans%*%x
+    } else {
+      x <- rbind(x, anc)
+    }
+  } else {
+    if(!is.null(COV)){
+      # Transformation of data using COV 
+      # (as per phylo.integration, but using a COV matrix instead of phylo)
+      cov.parts <- cov.mat(x, COV)
+      invC <- cov.parts$invC; D.mat <- cov.parts$D.mat
+      one <- matrix(1, nrow(x)); I <- diag(1, nrow(x)) 
+      Ptrans <- D.mat%*%(I-one%*%crossprod(one, invC)/sum(invC))
       x <- Ptrans%*%x
     }
   }
-
-  if(is.null(phy) & phylo.pca == T){
-    stop("To perform phylogenetic pca, please provide a phylogeny.")
-    }
-
+  
   if(is.null(tol)){
     d <- prcomp(x)$sdev^2
     cd <-cumsum(d)/sum(d)
@@ -75,8 +92,18 @@ gm.prcomp <- function (A, phy = NULL, phylo.pca = FALSE, ...){
   shapes <- arrayspecs(shapes,p, k)
   shapes <- lapply(seq(dim(shapes)[3]), function(x) shapes[,,x])
   names(shapes) <- shape.names
+  
+  # OUTPUT
+  if(is.null(phy) & is.null(COV)) meth <- "Raw data PCA"
+  if(!is.null(phy) & phylo.pca == FALSE) meth <- "Phylomorphospace"
+  if(!is.null(phy) & phylo.pca == TRUE) meth <- "Phylogenetic PCA"
+  if(!is.null(COV)) meth <- "COV-weighted PCA"
+  
+  if(!is.null(phy) | !is.null(COV)) pcdata <- pcdata[1:n, ]
+
   out <- list(pc.summary = summary(pc.res), pc.scores = pcdata, pc.shapes = shapes, 
-              sdev = pc.res$sdev, rotation = pc.res$rotation, anc.states = anc)
+              sdev = pc.res$sdev, rotation = pc.res$rotation, method = meth)
+  if(!is.null(phy)) out$anc.states <- anc
   class(out) = "gm.prcomp"
-  out
+  return(out)
 }

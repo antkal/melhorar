@@ -907,8 +907,8 @@ pcoa <- function(D){
   if(class(D) != "dist") stop("function only works with distance matrices")
   cmd <- cmdscale(D, k=attr(D, "Size") -1, eig=TRUE)
   options(warn=0)
-  p <- length(cmd$eig[zapsmall(cmd$eig) > 0])
-  Yp <- cmd$points[,1:p]
+  p <- which(zapsmall(abs(cmd$eig)) > 0)
+  Yp <- cmd$points[,p]
   Yp
 }
 
@@ -1382,10 +1382,11 @@ rrpp.w.o <- function(fitted, residuals, ind.i, w, o){
 }
 
 rrpp <- function(fitted, residuals, ind.i, w, o){
-  if(!is.null(w) && !is.null(o)) rrpp.w.o(fitted, residuals, ind.i, w, o)
-  if(!is.null(w) && is.null(o)) rrpp.w(fitted, residuals, ind.i, w)
-  if(is.null(w) && !is.null(o)) rrpp.o(fitted, residuals, ind.i, o)
-  if(is.null(w) && is.null(o)) rrpp.basic(fitted, residuals, ind.i)
+  if(!is.null(w) && !is.null(o)) r <- rrpp.w.o(fitted, residuals, ind.i, w, o)
+  if(!is.null(w) && is.null(o)) r <- rrpp.w(fitted, residuals, ind.i, w)
+  if(is.null(w) && !is.null(o)) r <- rrpp.o(fitted, residuals, ind.i, o)
+  if(is.null(w) && is.null(o)) r <- rrpp.basic(fitted, residuals, ind.i)
+  r
 }
 
 # SS.mean
@@ -1954,7 +1955,7 @@ apply.slopes <- function(pfit, Yr, g=NULL, slope=NULL, data=NULL, Pcor=NULL){
 # advanced.procD.lm
 vec.cor.matrix <- function(M) {
   M = as.matrix(M)
-  w = 1/sqrt(diag(tcrossprod(M)))
+  w = 1/sqrt(rowSums(M^2))
   vc = tcrossprod(M*w)
   options(warn = -1)
   vc

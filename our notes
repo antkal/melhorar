@@ -21,7 +21,6 @@ Shouldn't this be the PCA on the raw data, and then project the ancs on that for
   1. method = "TPS" does not work in the animation
   2. outline arg of plotRefToTarget does not work in either version
   
-
 FOR FUTURE INTEGRATION WITH OTHER PLOTTING FUNCTIONS (AK note 17SEP)
 - attribute specific S3 classes to analytical functions (pca, pls, allometry, anova etc)
 - plot(bla) then calls the specific plotting tools for each, i.e. plot.pca, plot.pls etc
@@ -35,3 +34,23 @@ For this we need to create specific S3 classes to be read by picknplot
    - PLS: A= 3d array, x = the other matrix/array, Intercept = FALSE, method = PLS
 
 
+AK - 20NOV2017
+##############
+Implemented rawPCA, anc+tipsPCA and phyloPCA as per e-mail string with DCA and MMC (6OCT2017)
+Function:
+  1) retrieves PCA options
+  2) does centering and scaling (if desired)
+  3) calculates shape ancs and stucks these to tip data (for phylomorphospace version)
+  4) does phylogenetic transformation (for phyloPCA version)
+  5) trims axes depending on tol
+- NEED TO CONFIRM ORDER OF OPERATIONS (i.e. centering, phylo, trimming)
+
+- line 43-45: Catch for double weighting (phylo and COV matrix). Should be stop or warning?
+- Added COV argument to allow for weighting with a different cov matrix (e.g. spatial)
+- Added function (cov.mat) to allow standardizing by this matrix (similar to phylo.mat)
+
+- Started building support.gm.prcomp to join plotting functions
+
+# Pending implementation:
+- catches for inputting procD.lm results (and NOT procD.pgls)
+- need to test what happens if input is procD.pgls - standardized data and you apply ppca to them

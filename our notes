@@ -50,6 +50,10 @@ Function:
 - Added function (cov.mat) to allow standardizing by this matrix (similar to phylo.mat)
 
 - Started building support.gm.prcomp to join plotting functions
+- plot.gm.prcomp: added ellipses to plotting and removed all options (groups, legends), which can 
+now be handled directly by the user, as would be the case in plot()
+- My idea here is to keep a very simple, basic, plotting function, for advanced users
+- Funcy options for the basic user will be made available through sunny
 
 # Pending implementation:
 - catches for inputting procD.lm results (and NOT procD.pgls)

@@ -3,39 +3,38 @@
 
 # Summary
 summary.gm.prcomp <- function(x){
-  cat(paste("Method: ", x$method, "\n", sep=""))
+  cat(paste("Method: ", attributes(x)$method, "\n", sep=""))
   x$pc.summary
 }
 
 # Plot - no warp option, use picknplot for that
-### WORK IN PROGRESS
-plot.gm.prcomp <- function(x, axis1 = 1, axis2 = 2, phylo = TRUE, 
-                           groups = NULL, legend = FALSE, ...){
-  m <- x$method
-  #if(m == "Raw data PCA")
-  
+### WORK IN PROGRESS - only works for raw pca for now
+plot.gm.prcomp <- function(x, axis1 = 1, axis2 = 2, phylo = FALSE, pickNplot = FALSE, ...) {
   pcdata <- x$pc.scores
-  if(legend == TRUE) { 
-    layout(t(matrix(c(1, 1, 2, 1, 1, 1, 1, 1, 1), 3,3))) 
-    }
-  plot(pcdata[, axis1], pcdata[, axis2], asp = 1, pch = 21, bg = "black", cex = 2, xlab = paste("PC ", axis1),
-       ylab = paste("PC ", axis2))
-  if(!is.null(groups)) {
-    points(pcdata[, axis1], pcdata[, axis2], pch=21, bg=groups, cex=2)
-    }
-  segments(min(pcdata[, axis1]), 0, max(pcdata[, axis1]), 0, lty = 2, lwd = 1)
-  segments(0, min(pcdata[, axis2]), 0, max(pcdata[, axis2]), lty = 2, lwd = 1)
-  if (length(label!=0)) {
-    if(isTRUE(label)) { 
-      text(pcdata[, axis1], pcdata[, axis2], seq(1, n), adj = c(-0.7, -0.7)) 
-    } else { 
-        text(pcdata[, axis1], pcdata[, axis2], label, adj = c(-0.1, -0.7)) 
-      }
-  }
-  if(!is.null(groups) && legend==TRUE){
-    plot.new(); 
-    if(is.factor(groups)){legend(0.5,1, legend=unique(groups), pch=19, bty="n", col=unique(groups))
-    } else {legend(0.5,1, legend=unique(names(groups)), pch=19, bty="n", col=unique(groups)) }
-  }
+  plot.args <- list(...)
+  plot.args$x <- pcdata[, axis1]  
+  plot.args$y <- pcdata[, axis2]
+  plot.args$asp <- 1  # Argument to be forced (all others can be handled by the user)
+  if(is.null(plot.args$xlab)) plot.args$xlab <- paste("PC ", axis1) 
+  if(is.null(plot.args$ylab)) plot.args$ylab <- paste("PC ", axis2)
+  if(is.null(plot.args$pch)) plot.args$pch <- 21
+  if(is.null(plot.args$bg)) plot.args$bg <- "black"
   
+  do.call(plot, args = plot.args)
+  segments(0.95*par()$usr[1], 0, 0.95*par()$usr[2], 0, lty = 2, lwd = 1)
+  segments(0, 0.95*par()$usr[3], 0, 0.95*par()$usr[4], lty = 2, lwd = 1)
+
+  if(phylo == TRUE){
+    if(attributes(x)$method == "Raw data PCA") {
+      stop("Raw-data PCA does not allow the projection of the phylogeny.
+           Please use phylomorphospace or phylogenetic-PCA in gm.prcomp instead.")
+    }
+    phy <- attributes(x)$phy
+    
+    ### Do we need to apply the phylogenetic mean adjustment? And if so, to phylomorphospace only, or also to ppca?
+    # pcdata <- pcdata - matrix(x$anc.pcscores[1,], nrow = nrow(pcdata), ncol = ncol(pcdata), byrow = T)
+    
+    
+    
+  }  
 }

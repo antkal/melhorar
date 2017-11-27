@@ -99,14 +99,19 @@ gm.prcomp <- function (A, phy = NULL, phylo.pca = FALSE, COV = NULL, ...){
   if(!is.null(phy) & phylo.pca == TRUE) meth <- "Phylogenetic PCA"
   if(!is.null(COV)) meth <- "COV-weighted PCA"
   
-  if(!is.null(phy) | !is.null(COV)) pcscores <- pcdata[1:n, ]
-
-  out <- list(pc.summary = summary(pc.res), pc.scores = pcscores, pc.shapes = shapes, 
+  out <- list(pc.summary = summary(pc.res), pc.scores = pcdata[1:n, ], pc.shapes = shapes, 
               sdev = pc.res$sdev, rotation = pc.res$rotation)
-  if(!is.null(phy)) {
+  
+  if(meth == "Phylomorphospace") {
     out$anc.states <- anc
     out$anc.pcscores <- pcdata[(N+1):nrow(pcdata),]
   }
+  
+  if(meth == "Phylogenetic PCA"){
+    out$anc.states <- anc
+    out$anc.pcscores <- anc%*%pc.res$rotation
+  }
+  
   class(out) = "gm.prcomp"
   attributes(out)$method <- meth
   attributes(out)$phy <- phy

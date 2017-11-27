@@ -9,7 +9,9 @@ summary.gm.prcomp <- function(x){
 
 # Plot - no warp option, use picknplot for that
 ### WORK IN PROGRESS - only works for raw pca for now
-plot.gm.prcomp <- function(x, axis1 = 1, axis2 = 2, phylo = FALSE, pickNplot = FALSE, ...) {
+plot.gm.prcomp <- function(x, axis1 = 1, axis2 = 2, phylo = FALSE, pickNplot = FALSE, 
+                           phylo.par = list(edge.color = "black", edge.width = 1, edge.lty = 1,
+                           node.bg = "black", node.pch = 21, node.cex = 1), ...) {
   pcdata <- x$pc.scores
   plot.args <- list(...)
   plot.args$x <- pcdata[, axis1]  
@@ -17,23 +19,29 @@ plot.gm.prcomp <- function(x, axis1 = 1, axis2 = 2, phylo = FALSE, pickNplot = F
   plot.args$asp <- 1  # Argument to be forced (all others can be handled by the user)
   if(is.null(plot.args$xlab)) plot.args$xlab <- paste("PC ", axis1) 
   if(is.null(plot.args$ylab)) plot.args$ylab <- paste("PC ", axis2)
-  if(is.null(plot.args$pch)) plot.args$pch <- 21
-  if(is.null(plot.args$bg)) plot.args$bg <- "black"
-  
-  do.call(plot, args = plot.args)
-  segments(0.95*par()$usr[1], 0, 0.95*par()$usr[2], 0, lty = 2, lwd = 1)
-  segments(0, 0.95*par()$usr[3], 0, 0.95*par()$usr[4], lty = 2, lwd = 1)
 
-  if(phylo == TRUE){
+  if(phylo == FALSE){
+    do.call(plot, args = plot.args)
+  } else {
     if(attributes(x)$method == "Raw data PCA") {
-      stop("Raw-data PCA does not allow the projection of the phylogeny.
-           Please use phylomorphospace or phylogenetic-PCA in gm.prcomp instead.")
+      stop("Raw-data PCA does not allow the projection of a phylogeny.
+           Please use phylomorphospace or phylogenetic-PCA.")
     }
+    pcdata <- rbind(pcdata, x$anc.pcscores)
     phy <- attributes(x)$phy
-    
-    ### Do we need to apply the phylogenetic mean adjustment? And if so, to phylomorphospace only, or also to ppca?
+    ### Do we need to apply the phylogenetic mean adjustment? 
+    # And if so, to phylomorphospace only, or also to ppca?
     # pcdata <- pcdata - matrix(x$anc.pcscores[1,], nrow = nrow(pcdata), ncol = ncol(pcdata), byrow = T)
-    
+    plot.args$type <- "n"
+    do.call(plot, args = plot.args)
+    for (i in 1:nrow(phy$edge)) {
+      lines(pcdata[(phy$edge[i,]), axis1], pcdata[(phy$edge[i,]), axis2], type="l",
+            col = phylo.par$edge.color, lwd = phylo.par$edge.width, lty = phylo.par$edge.lty)
+    }
+    plot.args$type <- "p"
+    do.call(points, args = plot.args)
+    points(pcdata[(length(phy$tip)+1):nrow(pcdata), axis1], pcdata[(length(phy$tip)+1):nrow(pcdata), axis2],
+           pch = phylo.par$node.pch, cex = phylo.par$node.cex, bg = phylo.par$node.bg)
     
     
   }  

@@ -42,7 +42,8 @@ Function:
   2) does centering and scaling (if desired)
   3) calculates shape ancs and stucks these to tip data (for phylomorphospace version)
   4) does phylogenetic transformation (for phyloPCA version)
-  5) trims axes depending on tol
+  5) runs the chosen PCA rotation
+  6) trims axes depending on tol and provides scores etc as results
 - NEED TO CONFIRM ORDER OF OPERATIONS (i.e. centering, phylo, trimming)
 
 - line 43-45: Catch for double weighting (phylo and COV matrix). Should be stop or warning?
@@ -50,11 +51,14 @@ Function:
 - Added function (cov.mat) to allow standardizing by this matrix (similar to phylo.mat)
 
 - Started building support.gm.prcomp to join plotting functions
-- plot.gm.prcomp: added ellipses to plotting and removed all options (groups, legends), which can 
-now be handled directly by the user, as would be the case in plot()
+- plot.gm.prcomp: added ellipses to plotting and removed all options (groups, legends), which can now be handled directly by the user, as would be the case in plot()
 - My idea here is to keep a very simple, basic, plotting function, for advanced users
 - Funcy options for the basic user will be made available through sunny
 
 # Pending implementation:
 - catches for inputting procD.lm results (and NOT procD.pgls)
 - need to test what happens if input is procD.pgls - standardized data and you apply ppca to them
+
+# AK 27NOV2017 ###
+- Finished a first version of basic plotting implementation for plot.gm.prcomp
+- Does it make sense to plot ppcas with the tree projected??? Phylogeny is "standardized for" in this version

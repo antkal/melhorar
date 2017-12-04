@@ -115,5 +115,6 @@ gm.prcomp <- function (A, phy = NULL, phylo.pca = FALSE, COV = NULL, ...){
   class(out) = "gm.prcomp"
   attributes(out)$method <- meth
   attributes(out)$phy <- phy
+  attributes(out)$Adata <- A
   return(out)
 }

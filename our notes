@@ -62,3 +62,12 @@ Function:
 # AK 27NOV2017 ###
 - Finished a first version of basic plotting implementation for plot.gm.prcomp
 - Does it make sense to plot ppcas with the tree projected??? Phylogeny is "standardized for" in this version
+
+# AK 4DEC2017 ###
+- At present 3D plotting is not optimized
+- Many of the nice options of plotGMPhyloMorphoSpace have been dropped, we need to incorporate them back in
+- There is no warp plotting, I am leaving this to pickNplot. Alternatively, we can ask if users want to use pickNplot at the end of plot.gm.prcomp and open the dialog automatically from there.
+
+
+
+

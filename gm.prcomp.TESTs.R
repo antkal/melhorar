@@ -18,7 +18,7 @@ summary(pleth.phylomorpho)
 summary(pleth.ppca) 
 
 # Plot of raw PCA data
-gps <- as.factor(c(rep("gp1", 5), rep("gp2", 4)))
+gps <- as.factor(c(rep("gp1", 5), rep("gp2", 4))) # Two random groups
 
 plot(pleth.raw)
 par(mgp = c(2.5, 0.5, 0))

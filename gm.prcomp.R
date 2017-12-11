@@ -1,8 +1,8 @@
 library(geomorph)
 
-source("geomorph.support.code.r")
 source("shape.ace.R")
 source("cov.mat.R")
+source("geomorph.support.code.r")
 
 # Only A: normal, raw PCA, accepts pca arguments through ...
 # A + phy: GMphylomorphospace

@@ -20,7 +20,7 @@ summary(pleth.ppca)
 # Plot of raw PCA data
 gps <- as.factor(c(rep("gp1", 5), rep("gp2", 4))) # Two random groups
 
-plot(pleth.raw)
+plot(pleth.raw) #Note that it prompts a question for visualizing shapes that calls incorporated picknplot.shape code
 par(mgp = c(2.5, 0.5, 0))
 plot(pleth.raw, pch=22, cex = 1.5, xlab = "My PCA - axis 1", asp = NULL, bg = gps,
      font.lab = 2, cex.lab = 2) # Modify options - asp is forced to asp = 1
@@ -64,5 +64,5 @@ text(pleth.ppca$pc.scores, labels = labels(pleth.ppca$pc.scores)[[1]],
 text(pleth.ppca$anc.pcscores, labels = labels(pleth.ppca$anc.pcscores)[[1]],
   adj = c(-0.1, -0.1), font = 2) 
 
-# Does it make sense to plot ppcas with the tree projected??? 
+# Does it make sense to allow plotting ppcas with the tree projected??? 
 # Phylogeny is "standardized for" in this version

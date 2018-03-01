@@ -53,9 +53,9 @@
 #' plotTangentSpace(arrayspecs(resid(lm(two.d.array(Y.gpa$coords)~Y.gpa$Csize))+
 #'          predict(lm(two.d.array(Y.gpa$coords)~1)),12,2))
 
-source("geomorph.support.code.r")
 source("shape.ace.R")
 source("cov.mat.R")
+source("geomorph.support.code.r")
 
 # Only A: normal, raw PCA, accepts pca arguments through ...
 # A + phy: GMphylomorphospace

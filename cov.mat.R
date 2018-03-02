@@ -1,6 +1,5 @@
 # Function for retrieving pieces for PCA weighting from a VCV (not from phylo)
 # Follows phylo.mat
-# AK - 20NOV2017
 
 cov.mat <- function(x, COV) {
   if(is.null(dimnames(COV))){

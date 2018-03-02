@@ -2,7 +2,7 @@
 
 ## gpagen
 
-#' Print/Summary Function for geomorph
+#' Print/Summary Function for geomorph 
 #' 
 #' @param x print/summary object (from \code{\link{gpagen}})
 #' @param ... other arguments passed to print/summary
@@ -107,7 +107,7 @@ plot.het <- function(r,f){
   f <- center(f)
   r <- sqrt(diag(tcrossprod(r)))
   f <- sqrt(diag(tcrossprod(f)))
-  lfr <- loess(r~f)
+  lfr <- loess(r~f, span = 1)
   lfr <- cbind(lfr$x, lfr$y, lfr$fitted)
   lfr <- lfr[order(lfr[,1]),]
   plot(lfr, pch=19, asp=1, 
@@ -157,17 +157,23 @@ plot.QQ <- function(r){
 plot.procD.lm <- function(x, type = c("diagnostics", "regression",
                                       "PC"), outliers=FALSE, predictor = NULL,
                           reg.type = c("CRC", "PredLine", "RegScore"), ...){
+  x.names <- names(x)
+  x.names[x.names == "pgls.residuals"] = "gls.residuals"
+  x.names[x.names == "pgls.fitted"] = "gls.fitted"
+  x.names[x.names == "pgls.coefficients"] = "gls.coefficients"
+  names(x) <- x.names
   r <- as.matrix(x$residuals)
   f <- as.matrix(x$fitted)
-  if(!is.null(x$Pcor)) {
-    r <- as.matrix(x$pgls.residuals)
-    f <- as.matrix(x$pgls.fitted)
+  if(!is.null(x$Pcov)) {
+    r <- as.matrix(x$gls.residuals)
+    f <- as.matrix(x$gls.fitted)
   }
   type <- match.arg(type)
   if(is.na(match(type, c("diagnostics", "regression", "PC")))) 
     type <- "diagnostics"
-  CRC <- PL <- Reg.proj <- NULL
+  CRC <- PL <- Reg.proj <- P <- NULL
   if(type == "diagnostics") {
+    pts <- NULL
     pca.r <- prcomp(r)
     var.r <- round(pca.r$sdev^2/sum(pca.r$sdev^2)*100,2)
     plot(pca.r$x, pch=19, asp =1,
@@ -182,7 +188,7 @@ plot.procD.lm <- function(x, type = c("diagnostics", "regression",
          xlab = paste("PC 1", var.f[1],"%"),
          ylab = "Procrustes Distance Residuals",
          main = "Residuals vs. PC 1 fitted")
-    lfr <- loess(dr~pca.f$x[,1])
+    lfr <- loess(dr~pca.f$x[,1], span = 1)
     lfr <- cbind(lfr$x, lfr$fitted); lfr <- lfr[order(lfr[,1]),]
     points(lfr, type="l", col="red")
     plot.het(r,f)
@@ -203,15 +209,17 @@ plot.procD.lm <- function(x, type = c("diagnostics", "regression",
     if(length(predictor) != n) 
       stop("Observations in predictor must equal observations if procD.lm fit")
     X <- x$X * sqrt(x$weights)
-    if(!is.null(x$Pcor)) B <- x$pgls.coefficients else B <- x$coefficients
+    if(!is.null(x$Pcov)) B <- x$gls.coefficients else B <- x$coefficients
     xc <- predictor
-    pred.match <- match(xc, X)
-    if(any(is.na(pred.match))) {
+    pred.match <- sapply(1:NCOL(X), function(j){
+      any(is.na(match(xc, X[,j])))
+    })
+    if(all(pred.match)) {
       b <- lm(f ~ xc)$coefficients
       if(is.matrix(b)) b <- b[2,] else b <- b[2]
     } else {
       Xcrc <- as.matrix(X)
-      Xcrc[pred.match] <- 0
+      Xcrc[,!pred.match] <- 0
       f <- Xcrc %*% B
       r <- x$Y - f
       b <- lm(f ~ xc)$coefficients
@@ -225,6 +233,7 @@ plot.procD.lm <- function(x, type = c("diagnostics", "regression",
     Reg.proj <- x$Y%*%b%*%sqrt(solve(crossprod(b)))
     PL <- prcomp(f)$x[,1]
     if(reg.type == "CRC"){
+      pts <- CRC
       par(mfcol = c(1,2))
       par(mar = c(4,4,1,1))
       plot(predictor, CRC,  ...)
@@ -232,9 +241,11 @@ plot.procD.lm <- function(x, type = c("diagnostics", "regression",
       par(mar = c(5,4,4,2) + 0.1)
       par(mfcol=c(1,1))
     } else if(reg.type == "RegScore") {
+      pts <- Reg.proj
       plot(predictor, Reg.proj, 
            ylab = "Regression Score", ...)
     } else {
+      pts <- PL
       plot(predictor, PL, 
            ylab = "PC 1 for fitted values", ...)
     }
@@ -242,11 +253,21 @@ plot.procD.lm <- function(x, type = c("diagnostics", "regression",
   if(type == "PC"){
     eigs <- prcomp(f)$rotation
     P <- x$Y%*%eigs
+    pts <- P
     plot(P, asp=1,
          xlab = "PC 1 for fitted values",
          ylab = "PC 2 for fitted values", ...)
   }
-  out <- list(CRC = CRC, PredLine = PL, RegScore = Reg.proj)
+  
+  gp.check <- sapply(x$data, is.factor)
+  if(all(!gp.check)) groups <- NULL else {
+    groups <- x$data[gp.check]
+    if(length(groups) > 1) 
+      groups <- as.factor(apply(groups, 1, paste, collapse = "."))
+  }
+  out <- list(CRC = CRC, PredLine = PL, RegScore = Reg.proj, PC.scores = P,
+              points = pts, residuals = r, fitted = f, groups = groups)
+  class(out) <- "plot.procD.lm"
   invisible(out)
 }
 
@@ -538,12 +559,12 @@ print.pls <- function (x, ...) {
   if(x$method=="RV") {
     cat(paste("\nRV:", round(x$RV, nchar(x$permutations)-1)))
     cat(paste("\n\nP-value:", round(x$P.value, nchar(x$permutations)-1)))
-    cat(paste("\n\nBased on", x$permutations, "random permutations"))
+    cat(paste("\n\nBased on", x$permutations, "random permutations\n"))
   }
   if(x$method=="PLS") {
     cat(paste("\nr-PLS:", round(x$r.pls, nchar(x$permutations)-1)))
     cat(paste("\n\nP-value:", round(x$P.value, nchar(x$permutations)-1)))
-    cat(paste("\n\nBased on", x$permutations, "random permutations"))
+    cat(paste("\n\nBased on", x$permutations, "random permutations\n"))
   }
   invisible(x)
 }
@@ -566,13 +587,19 @@ summary.pls <- function(object, ...) {
 #' @param label Optional vector to label points
 #' @param warpgrids Logical argument whether to include warpgrids
 #' @param shapes Logical argument whether to return the the shape coordinates of the extreme ends of axis1 and axis2
-#' @param ... other arguments passed to plot
-#' @return If shapes = TRUE, function returns a list containing the shape coordinates of the extreme ends of axis1 and axis2 if 3D arrays were originally provided for each
+#' @param ... other arguments passed to plot and plotRefToTarget (in a limited capacity).  In most cases, greater flexibility
+#' can be attained with using \code{\link{plotRefToTarget}} and \code{\link{shape.predictor}}.
+#' @return If shapes = TRUE, function returns a list containing the shape coordinates of the extreme ends of axis1 and axis2 
+#' if 3D arrays were originally provided for each
 #' @export
 #' @author Michael Collyer
 #' @keywords utilities
 #' @keywords visualization
 plot.pls <- function(x, label = NULL, warpgrids=TRUE, shapes=FALSE, ...){
+  dots <- list(...)
+  if(!is.null(dots$gridPars)) gridPars <- dots$gridPars else gridPars <- NULL
+  if(!is.null(dots$mesh)) mesh <- dots$mesh else mesh <- NULL
+  if(!is.null(dots$outline)) outline <- dots$outline else outline <- NULL
   if(!is.null(x$A1)){
     A1 <- x$A1; A2 <- x$A2
     XScores <- x$XScores; YScores <- x$YScores
@@ -631,15 +658,15 @@ plot.pls <- function(x, label = NULL, warpgrids=TRUE, shapes=FALSE, ...){
       if (warpgrids == TRUE) {
         if (length(dim(A1)) == 3 && dim(A1)[2] == 2) {
           screen(2)
-          tps(A1.ref, pls1.min, 20, sz = 0.7)
+          plotRefToTarget(A1.ref, pls1.min, ...)
           screen(3)
-          tps(A1.ref, pls1.max, 20, sz = 0.7)
+          plotRefToTarget(A1.ref, pls1.max,  ...)
         }
         if (length(dim(A2)) == 3 && dim(A2)[2] == 2) {
           screen(4)
-          tps(A2.ref, pls2.min, 20, sz = 0.7)
+          plotRefToTarget(A2.ref, pls2.min,  ...)
           screen(5)
-          tps(A2.ref, pls2.max, 20, sz = 0.7)
+          plotRefToTarget(A2.ref, pls2.max,  ...)
         }
       }
       close.screen(all.screens = TRUE)
@@ -653,17 +680,41 @@ plot.pls <- function(x, label = NULL, warpgrids=TRUE, shapes=FALSE, ...){
       }
       abline(lm(py~px), col="red")
       open3d() ; mfrow3d(1, 2) 
-      plot3d(pls1.min, type = "s", col = "gray", main = paste("PLS Block1 negative"), 
-             size = 1.25, aspect = FALSE,xlab="",ylab="",zlab="",box=FALSE, axes=FALSE)
-      plot3d(pls1.max, type = "s", col = "gray", main = paste("PLS Block1 positive"), 
-             size = 1.25, aspect = FALSE,xlab="",ylab="",zlab="",box=FALSE, axes=FALSE)
+      if(!is.null(mesh)) {
+        warp1.PLY <- warp2.PLY <- mesh
+        vb <- as.matrix(t(mesh$vb)[,-4])
+        cat("\nWarping mesh\n")
+        warp1 <- tps2d3d(vb, A1.ref, pls1.min)
+        warp1.PLY$vb <- rbind(t(warp1), 1)
+        shade3d(warp1.PLY, ...)
+        warp2 <- tps2d3d(vb, A1.ref, pls1.max)
+        warp2.PLY$vb <- rbind(t(warp2), 1)
+        shade3d(warp2.PLY, ...)
+      } else {
+        plot3d(pls1.min, type = "s", col = "gray", main = paste("PLS Block1 negative"), 
+               size = 1.25, aspect = FALSE,xlab="",ylab="",zlab="",box=FALSE, axes=FALSE)
+        plot3d(pls1.max, type = "s", col = "gray", main = paste("PLS Block1 positive"), 
+               size = 1.25, aspect = FALSE,xlab="",ylab="",zlab="",box=FALSE, axes=FALSE)
+      }
     }
     if (length(dim(A2)) == 3 && dim(A2)[2] == 3) {
       open3d() ; mfrow3d(1, 2) 
-      plot3d(pls2.min, type = "s", col = "gray", main = paste("PLS Block2 negative"), 
-             size = 1.25, aspect = FALSE,xlab="",ylab="",zlab="",box=FALSE, axes=FALSE)
-      plot3d(pls2.max, type = "s", col = "gray", main = paste("PLS Block2 positive"), 
-             size = 1.25, aspect = FALSE,xlab="",ylab="",zlab="",box=FALSE, axes=FALSE)
+      if(!is.null(mesh)) {
+        warp1.PLY <- warp2.PLY <- mesh
+        vb <- as.matrix(t(mesh$vb)[,-4])
+        cat("\nWarping mesh\n")
+        warp1 <- tps2d3d(vb, A2.ref, pls2.min)
+        warp1.PLY$vb <- rbind(t(warp1), 1)
+        shade3d(warp1.PLY, ...)
+        warp2 <- tps2d3d(vb, A2.ref, pls2.max)
+        warp2.PLY$vb <- rbind(t(warp2), 1)
+        shade3d(warp2.PLY, ...)
+      } else {
+        plot3d(pls2.min, type = "s", col = "gray", main = paste("PLS Block2 negative"), 
+               size = 1.25, aspect = FALSE,xlab="",ylab="",zlab="",box=FALSE, axes=FALSE)
+        plot3d(pls2.max, type = "s", col = "gray", main = paste("PLS Block2 positive"), 
+               size = 1.25, aspect = FALSE,xlab="",ylab="",zlab="",box=FALSE, axes=FALSE)
+      }
     } 
     layout(1)
     if(shapes == TRUE){
@@ -743,9 +794,9 @@ plot.bilat.symmetry <- function(x, warpgrids = TRUE, mesh= NULL, ...){
       if (k==3){
         if (is.null(mesh)){
           open3d() ; mfrow3d(1, 2) 
-          plotRefToTarget(x$DA.mns[,,1],x$DA.mns[,,2],method="points",main="Directional Asymmetry",xlab="",ylab="",zlab="",box=FALSE, axes=FALSE)
+          plotRefToTarget(x$DA.mns[,,1],x$DA.mns[,,2],method="points",main="Directional Asymmetry",box=FALSE, axes=FALSE)
           next3d()
-          plotRefToTarget(x$FA.mns[,,1],x$FA.mns[,,2],method="points",main="Fluctuating Asymmetry",xlab="",ylab="",zlab="",box=FALSE, axes=FALSE)
+          plotRefToTarget(x$FA.mns[,,1],x$FA.mns[,,2],method="points",main="Fluctuating Asymmetry",box=FALSE, axes=FALSE)
         } 
         if(!is.null(mesh)){
           open3d() ; mfrow3d(1, 2) 
@@ -774,9 +825,9 @@ plot.bilat.symmetry <- function(x, warpgrids = TRUE, mesh= NULL, ...){
         if (k==3){
           if(is.null(mesh)) {
             open3d() ; mfrow3d(1, 2) 
-            plotRefToTarget(x$DA.mns[,,1],x$DA.mns[,,2],method="points",main="Directional Asymmetry",xlab="",ylab="",zlab="",box=FALSE, axes=FALSE)
+            plotRefToTarget(x$DA.mns[,,1],x$DA.mns[,,2],method="points",main="Directional Asymmetry",box=FALSE, axes=FALSE)
             next3d()
-            plotRefToTarget(x$FA.mns[,,1],x$FA.mns[,,2],method="points",main="Fluctuating Asymmetry",xlab="",ylab="",zlab="",box=FALSE, axes=FALSE)
+            plotRefToTarget(x$FA.mns[,,1],x$FA.mns[,,2],method="points",main="Fluctuating Asymmetry",box=FALSE, axes=FALSE)
           } 
           if(!is.null(mesh)){
             open3d() ; mfrow3d(1, 2) 
@@ -1202,14 +1253,22 @@ trajplot.by.groups<-function(Data, TM, groups, group.cols = NULL,
 #' @keywords visualization
 plot.trajectory.analysis <- function(x, group.cols = NULL, 
             pt.seq.pattern  = c("white", "gray", "black"), pt.scale = 1,...){
-  if(x$trajectory.type == 2)
-  trajplot.w.int(Data=x$pc.data, M =x$pc.means,
-           TM = x$pc.trajectories, groups = x$groups, 
-           group.cols=group.cols, pattern = pt.seq.pattern, pt.scale=pt.scale)
-  if(x$trajectory.type == 1)
+  if(x$trajectory.type == 2) {
+    trajplot.w.int(Data=x$pc.data, M =x$pc.means,
+                   TM = x$pc.trajectories, groups = x$groups, 
+                   group.cols=group.cols, pattern = pt.seq.pattern, pt.scale=pt.scale)
+    out <- list(points = x$pc.data[,1:2], pc.data = x$pc.data, pc.means = x$pc.means,
+                pc.trajectories = x$pc.trajectories, groups = x$groups)
+  }
+  if(x$trajectory.type == 1) {
     trajplot.by.groups(Data=x$pc.data, 
-           TM = x$pc.trajectories, groups = x$groups, 
-           group.cols=group.cols, pattern = pt.seq.pattern, pt.scale=pt.scale)
+                       TM = x$pc.trajectories, groups = x$groups, 
+                       group.cols=group.cols, pattern = pt.seq.pattern, pt.scale=pt.scale)
+    out <- list(points = x$pc.data[,1:2], pc.data = x$pc.data, pc.means = NULL,
+                pc.trajectories = x$pc.trajectories, groups = x$groups)
+  }
+  class(out) <- "plot.trajectory.analysis"
+  invisible(out)
 }
 
 # plotTangentSpace
@@ -1238,7 +1297,7 @@ summary.plotTangentSpace <- function (object, ...) {
   print.plotTangentSpace(object, ...)
 }
 
-# comapre.pls
+# compare.pls
 
 #' Print/Summary Function for geomorph
 #' 
@@ -1303,3 +1362,50 @@ print.combined.set <- function(x,...){
 #' @keywords utilities
 #'
 summary.combined.set <- function(object, ...) print.combined.set(object, ...)
+
+# mshape
+
+#' Plot Function for geomorph
+#' 
+#' @param x plot object (from \code{\link{mshape}})
+#' @param links An optional matrix defining for links between landmarks
+#' @param ... other arguments passed to plot
+#' @export
+#' @author Antigoni Kaliontzopoulou
+#' @keywords utilities
+#' @keywords visualization
+#' @seealso  \code{\link{define.links}}
+
+plot.mshape <- function(x, links=NULL,...){
+  x <- as.matrix(x)
+  class(x) <- "matrix"
+  if(ncol(x)==2){
+    x <- xy.coords(x)
+    par(xpd=T)
+    plot.new()
+    plot.window(1.05*range(x$x), 1.05*range(x$y), 
+                xaxt="n", yaxt="n", xlab="", ylab="", bty="n", asp = 1,...)
+    if(!is.null(links)){
+      for (i in 1:nrow(links)){
+        segments(x$x[links[i,1]], x$y[links[i,1]], 
+                 x$x[links[i,2]], x$y[links[i,2]])
+      }
+    }
+    plot.xy(x, type="p", cex=3, pch=21, bg="white")
+    text(x, labels=1:length(x$x))
+  } else {
+  if(ncol(x)==3){
+    plot3d(x, type="n", aspect=FALSE, xlab="", ylab="", zlab="", axes=F,...)
+    if(!is.null(links)){
+      for(i in 1:nrow(links)){
+        segments3d(c(x[links[i,1], 1], x[links[i,2], 1]),
+                   c(x[links[i,1], 2], x[links[i,2], 2]), 
+                   c(x[links[i,1], 3], x[links[i,2], 3]))
+      }
+    }
+    plot3d(x, add=T, type="s", col="white", alpha=0.25, shininess=2, fog=F)
+    text3d(x, texts=1:nrow(x), cex=0.7, font=2)
+  }
+  }
+}
+

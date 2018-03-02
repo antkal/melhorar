@@ -16,7 +16,7 @@ plot.gm.prcomp <- function(X, axis1 = 1, axis2 = 2, phylo = FALSE,
   plot.args <- list(...)
   plot.args$x <- pcdata[, axis1]  
   plot.args$y <- pcdata[, axis2]
-  plot.args$asp <- 1  # Argument to be forced (all others can be handled by the user)
+  plot.args$asp <- 1  
   if(is.null(plot.args$xlab)) plot.args$xlab <- paste("PC ", axis1) 
   if(is.null(plot.args$ylab)) plot.args$ylab <- paste("PC ", axis2)
 
@@ -42,37 +42,5 @@ plot.gm.prcomp <- function(X, axis1 = 1, axis2 = 2, phylo = FALSE,
     do.call(points, args = plot.args)
     points(pcdata[(length(phy$tip)+1):nrow(pcdata), axis1], pcdata[(length(phy$tip)+1):nrow(pcdata), axis2],
            pch = phylo.par$node.pch, cex = phylo.par$node.cex, bg = phylo.par$node.bg)
-  }
-  continue <- readline("Do you want to visualize shape variation in morphospace (y/n)? ")
-  while(continue == "y"){
-    cat("Pick a point in shape space", "\n")
-    picked.pts <- unlist(locator(n = 1, type = "p", pch = 20, col = "red", cex = 1))
-    cat("Picked point coordinates are:", "\n")
-    cat(picked.pts, "\n") 
-    preds <- shape.predictor(attributes(X)$Adata, x = X$pc.scores[,c(axis1, axis2)], Intercept = FALSE, pred1 = picked.pts)
-    if (dim(attributes(X)$Adata)[2]==2) {
-      plot.args$M1 <- cbind(mshape(attributes(X)$Adata), 0)
-      plot.args$M2 <- cbind(preds$pred1, 0)
-      class(plot.args$M2) <- "predshape.k2"
-      view3d(phi = 0, fov = 30, interactive = FALSE) 
-      do.call(plotRefToTarget, plot.args)
-    }
-    if (dim(attributes(X)$Adata)[2]==3){
-      plot.args$M1 <- mshape(attributes(X)$Adata)
-      plot.args$M2 <- preds$pred1
-      class(plot.args$M2) <- "predshape.k3"
-      if(plot.args$method == "TPS"){view3d(phi = 0, fov = 30, interactive = FALSE)}
-      else view3d(phi = 0, fov = 30, interactive = TRUE) 
-      do.call(plotRefToTarget,  args = plot.args)
-    }
-    ans <- readline("Save deformation grid as png file (y/n)? ")
-    if(ans=="y") {
-      file.name <- readline("Please provide file name for saving deformation grid (without quotes) ")
-      rgl.snapshot(file = file.name)
-    }
-    if(ans=="n"){
-      try(rgl.close(), silent=T)
-    }
-    continue <- readline("Do you want to pick another point (y/n)? ")
   }
 }

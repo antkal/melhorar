@@ -1,7 +1,7 @@
 # gm.prcomp - examples and tests
 rm(list=ls())
 source("gm.prcomp.R")
-source("support.gm.prcomp.R")
+source("gm.prcomp.utils.R")
 
 # Example data (with phylo)
 data(plethspecies) 

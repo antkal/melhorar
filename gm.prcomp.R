@@ -81,16 +81,6 @@
 #' text(pleth.phylomorpho$pc.scores, labels = labels(pleth.phylomorpho$pc.scores)[[1]],
 #'      pos = 3, font = 4) 
 
-
-
-
-
-
-
-
-
-
-
 gm.prcomp <- function (A, phy = NULL, phylo.pca = FALSE, Cov = NULL, ...){
   if (length(dim(A)) != 3) {
     stop("Data matrix not a 3D array (see 'arrayspecs').") }

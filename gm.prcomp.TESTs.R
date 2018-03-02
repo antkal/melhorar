@@ -1,5 +1,8 @@
 # gm.prcomp - examples and tests
 rm(list=ls())
+library(geomorph)
+source("geomorph.support.code.r")
+source("geomorph.utils.r")
 source("gm.prcomp.R")
 source("gm.prcomp.utils.R")
 
@@ -20,7 +23,10 @@ summary(pleth.ppca)
 # Plot of raw PCA data
 gps <- as.factor(c(rep("gp1", 5), rep("gp2", 4))) # Two random groups
 
-plot(pleth.raw) #Note that it prompts a question for visualizing shapes that calls incorporated picknplot.shape code
+plot(pleth.raw) 
+abline(h=0)
+abline(v=0)
+
 par(mgp = c(2.5, 0.5, 0))
 plot(pleth.raw, pch=22, cex = 1.5, xlab = "My PCA - axis 1", asp = NULL, bg = gps,
      font.lab = 2, cex.lab = 2) # Modify options - asp is forced to asp = 1
@@ -37,21 +43,35 @@ text(pleth.phylomorpho$pc.scores, labels = labels(pleth.phylomorpho$pc.scores)[[
 plot(pleth.phylomorpho, xlim=c(-0.035, 0.04))
 text(pleth.phylomorpho$pc.scores, labels = labels(pleth.phylomorpho$pc.scores)[[1]],
      adj = c(-0.1, -0.1)) 
+points(pleth.phylomorpho$anc.pcscores, pch=21, bg="black")
+text(pleth.phylomorpho$anc.pcscores, labels=1:8, pos=4)
+abline(h=0)
+abline(v=0)
 
 plot(pleth.ppca, xlim=c(-0.01, 0.015), cex=1.5, pch=23, bg=ifelse(gps=="gp1", "red", "blue"))
 text(pleth.ppca$pc.scores, labels = labels(pleth.ppca$pc.scores)[[1]],
      adj = c(-0.1, -0.1)) 
 legend("bottomleft", pch=23, pt.bg = c("red", "blue"), legend = levels(gps), cex = 1.5, bty = "n")
 
+plot(pleth.ppca)
+points(pleth.ppca$anc.pcscores, pch=21, bg="black")
+text(pleth.ppca$anc.pcscores, labels=1:8, pos=4)
+abline(h=0)
+abline(v=0)
+
 # Plots WITH trees
 plot(pleth.raw, phylo = T)  # Gives error (as it should)
 plot(pleth.phylomorpho, phylo = T)
 
 # Modify parameters - arguments passed directly modify tip plotting
-plot(pleth.phylomorpho, phylo = T, cex = 2, pch = 22, bg = gps, lwd = 2)
-plot(pleth.phylomorpho, phylo = T, cex = 2, pch = 22, bg = gps, 
-     phylo.par = list(edge.color = "blue", edge.width = 2, edge.lty = 2,
-                      node.cex = 0)) # Supresses plotting of nodes
+par(xpd=T)
+plot(pleth.phylomorpho, phylo = T, cex = 2, pch = 22, bg = gps, lwd = 2, 
+     xlim=c(-0.05, 0.03), ylim=c(-0.04, 0.035))
+plot(pleth.phylomorpho, phylo = T, cex = 3, pch = 22, bg = gps, 
+      phylo.par = list(edge.color = "blue", edge.width = 2, edge.lty = 2,
+      node.cex = 0)) # Supresses plotting of nodes
+ text(pleth.phylomorpho$pc.scores, labels = labels(pleth.phylomorpho$pc.scores)[[1]],
+      pos = 2, font = 4) 
 
 # Plot and add things by hand (base R plotting)
 par(mgp = c(2, 0.5, 0))

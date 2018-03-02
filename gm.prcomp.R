@@ -3,66 +3,95 @@
 #' Function performs raw or weighted PCA on superimposed shape coordinates  
 #'
 #' The function performs a principal components analysis of shape variation, with the possibility
-#' of weighing  a phylogenetic tree, or a variance-covariance matrix, to incorporate the expected
-#'   
+#' of weighing the analysis using a phylogenetic tree, or a variance-covariance matrix, 
+#' to incorporate the expected covariance among dependent observations (e.g. due to spatial autocorrelation).
+#' At present combined analysis allowing the use of both a phylogeny and another covariance matrix is
+#' not implemented.
+#' If a phylogeny is provided and phylo.pca = TRUE, observations are phylogenetically adjusted to 
+#' calculate a phylogenetic PCA (Revell, 2009). 
+#' If phylo.pca = FALSE, ancestral shapes are first estimated for the phylogeny nodes and PCA is then calculated
+#' on the combined matrix of raw and ancestor data, producing the data necessary for a phylomorphospace plot.
+#' 
+#' PLOTTING: Contrary to previous geomorph implementations, gm.prcomp does not produce plots. 
+#' For plotting options of gm.prcomp class objects see \code{\link{plot.gm.prcomp}}.
 #' 
 #'
-#' @param A A 3D array (p x k x n) containing landmark coordinates for a set of aligned specimens 
-#' @param warpgrids A logical value indicating whether deformation grids for shapes along X-axis should be displayed
-#' @param mesh A mesh3d object to be warped to represent shape deformation along X-axis (when {warpgrids=TRUE})
-#' as described in \code{\link{plotRefToTarget}}.
-#' @param axis1 A value indicating which PC axis should be displayed as the X-axis (default = PC1)
-#' @param axis2 A value indicating which PC axis should be displayed as the Y-axis (default = PC2)
-#' @param label An optional vector indicating labels for each specimen are to be displayed 
-#' (or if TRUE, numerical addresses are given)
-#' @param groups An optional factor vector specifying group identity for each specimen (see example)
-#' @param legend A logical value for whether to add a legend to the plot (only when groups are assigned).
-#' @param ... Arguments passed on to \code{\link{prcomp}}.  By default, \code{\link{plotTangentSpace}}
+#' @param A A 3D array (p x k x n) containing landmark coordinates for a set of aligned specimens
+#' @param phy An optional phylogenetic tree of class phylo - see \code{\link{read.tree}} in library ape
+#' @param phylo.pca A logical value indicating whether phylogenetic PCA (TRUE) 
+#' or the phylomorphospace approach (FALSE) should be used. See also details.
+#' @param Cov An optional covariance matrix for weighting. See also details.
+#' @param ... Arguments passed on to \code{\link{prcomp}}.  By default, \code{\link{gm.prcomp}}
 #' will attempt to remove redundant axes (eigen values effectively 0).  To override this, adjust the 
 #' argument, tol, from \code{\link{prcomp}}.
-#' @return If user assigns function to object, returned is a list of the following components:
+#' @return An object of class "gm.prcomp" is a list with the following components:
 #' \item{pc.summary}{A table summarizing the percent variation explained by each pc axis, equivalent to summary of \code{\link{prcomp}}.}
 #' \item{pc.scores}{The set of principal component scores for all specimens.}
 #' \item{pc.shapes}{A list with the shape coordinates of the extreme ends of all PC axes, e.g. $PC1min}
 #' \item{sdev}{The standard deviations of the principal components (i.e., the square roots of the eigenvalues of the 
 #' covariance/correlation matrix, as per \code{\link{prcomp}}.}
 #' \item{rotation}{The matrix of variable loadings, as per \code{\link{prcomp}}.}
+#' \item{anc.states}{The matrix of estimated ancestral shapes, if a phylogeny is used.}
+#' \item{anc.pcscores}{The matrix of principal component scores for the phylogeny nodes.}
 #' @export
 #' @keywords visualization
-#' @author Dean Adams & Emma Sherratt
+#' @author Antigoni Kaliontzopoulou
+#' @references Revell, L. J. (2009) Size-correction and principal components for interspecific comparative studies. 
+#' Evolution, 63, 3258-3268.
 #' @examples
 #' data(plethodon) 
 #' Y.gpa<-gpagen(plethodon$land)    #GPA-alignment
 #' 
-#' gp <- interaction(plethodon$species, plethodon$site) # group must be a factor
-#' plotTangentSpace(Y.gpa$coords, groups = gp) 
+#' ### Raw data PCA
+#' pleth.raw <- gm.prcomp(Y.gpa$coords)
+#' summary(pleth.raw)
 #' 
-#' ## To save and use output
-#' PCA <- plotTangentSpace(Y.gpa$coords, groups = gp, legend=TRUE) 
-#' summary(PCA)
-#' PCA$pc.shapes
-#' PCA$rotation
+#' # Plotting
+#' gps <- as.factor(c(rep("gp1", 5), rep("gp2", 4))) # Two random groups
+#' par(mgp = c(2.5, 0.5, 0))
+#' plot(pleth.raw, pch=22, cex = 1.5, xlab = "My PCA - axis 1", asp = NULL, bg = gps,
+#'     font.lab = 2, cex.lab = 2) # Modify options as desired
+#  Add things as desired using standard R plotting
+#' segments(0.95*par()$usr[1], 0, 0.95*par()$usr[2], 0, lty = 2, lwd = 1)
+#' segments(0, 0.95*par()$usr[3], 0, 0.95*par()$usr[4], lty = 2, lwd = 1)
+#' legend("topright", pch=22, pt.bg = unique(gps), legend = levels(gps), cex = 2)
 #' 
-#' ##To change colors of groups
-#' col.gp <- rainbow(length(levels(gp))) 
-#'    names(col.gp) <- levels(gp)
-#' col.gp <- col.gp[match(gp, names(col.gp))] # col.gp must NOT be a factor
-#' plotTangentSpace(Y.gpa$coords, groups = col.gp)
+#' ### Phylogenetic PCA
+#' pleth.ppca <- gm.prcomp(Y.gpa$coords, plethspecies$phy, phylo.pca = T)
+#' summary(pleth.ppca) 
 #' 
-#' ## To plot residual shapes from an allometry regression (note: must add mean back in!) 
-#' plotTangentSpace(arrayspecs(resid(lm(two.d.array(Y.gpa$coords)~Y.gpa$Csize))+
-#'          predict(lm(two.d.array(Y.gpa$coords)~1)),12,2))
+#' # Plotting
+#' par(mgp = c(2, 0.5, 0))
+#' plot(pleth.ppca, phylo = T, cex = 1.5, pch = 22, bg = gps, cex.lab = 2, font.lab = 2, xlim = c(-0.007, 0.017),
+#'      phylo.par = list(edge.color = "grey", edge.width = 2,
+#'      node.bg = "black", node.pch = 22, node.cex = 0.5))
+#' text(pleth.ppca$pc.scores, labels = labels(pleth.ppca$pc.scores)[[1]],
+#'      pos = 2, font = 4) 
+#' text(pleth.ppca$anc.pcscores, labels = labels(pleth.ppca$anc.pcscores)[[1]],
+#'      adj = c(-0.1, -0.1), font = 2) 
+#'      
+#' ### Phylomorphospace
+#' pleth.phylomorpho <- gm.prcomp(Y.gpa$coords, plethspecies$phy)
+#' summary(pleth.phylomorpho)
+#' 
+#' # Plotting
+#' plot(pleth.phylomorpho, phylo = T, cex = 2, pch = 22, bg = gps, 
+#'      phylo.par = list(edge.color = "blue", edge.width = 2, edge.lty = 2,
+#'      node.cex = 0)) # Supresses plotting of nodes
+#' text(pleth.phylomorpho$pc.scores, labels = labels(pleth.phylomorpho$pc.scores)[[1]],
+#'      pos = 3, font = 4) 
 
-source("shape.ace.R")
-source("cov.mat.R")
-source("geomorph.support.code.r")
 
-# Only A: normal, raw PCA, accepts pca arguments through ...
-# A + phy: GMphylomorphospace
-# A + phy + phylo.pca = T: phyloPCA
-# A + COV: other weighed PCA (with catch for phy&cov)
 
-gm.prcomp <- function (A, phy = NULL, phylo.pca = FALSE, COV = NULL, ...){
+
+
+
+
+
+
+
+
+gm.prcomp <- function (A, phy = NULL, phylo.pca = FALSE, Cov = NULL, ...){
   if (length(dim(A)) != 3) {
     stop("Data matrix not a 3D array (see 'arrayspecs').") }
   if(any(is.na(A))==T){
@@ -89,7 +118,7 @@ gm.prcomp <- function (A, phy = NULL, phylo.pca = FALSE, COV = NULL, ...){
       stop("Tree must be of class 'phylo.'")
     if (!is.binary.tree(phy)) 
       stop("Tree is not fully bifurcating (consider 'multi2di' in ape).")
-    if(!is.null(COV)){
+    if(!is.null(Cov)){
       stop("Method not implemented for weighting with BOTH a phylogeny and another covariance matrix.")
     }
     N <- length(phy$tip.label); Nnode <- phy$Nnode
@@ -101,24 +130,25 @@ gm.prcomp <- function (A, phy = NULL, phylo.pca = FALSE, COV = NULL, ...){
     anc <- shape.ace(x, phy)
     
     if(phylo.pca == T){
-      # Phylogenetic transformation (follows phylo.integration code)
       phy.parts <- phylo.mat(x, phy)
       invC <- phy.parts$invC; D.mat <- phy.parts$D.mat
       one <- matrix(1, nrow(x)); I <- diag(1, nrow(x)) 
       Ptrans <- D.mat%*%(I-one%*%crossprod(one, invC)/sum(invC))
       x <- Ptrans%*%x
+      center = apply(x, 2, mean)
+      anc <- scale(anc, center = anc[1,], scale = F)
     } else {
       x <- rbind(x, anc)
+      center <- anc[1,]
     }
   } else {
-    if(!is.null(COV)){
-      # Transformation of data using COV 
-      # (as per phylo.integration, but using a COV matrix instead of phylo)
-      cov.parts <- cov.mat(x, COV)
+    if(!is.null(Cov)){
+      cov.parts <- cov.mat(x, Cov)
       invC <- cov.parts$invC; D.mat <- cov.parts$D.mat
       one <- matrix(1, nrow(x)); I <- diag(1, nrow(x)) 
       Ptrans <- D.mat%*%(I-one%*%crossprod(one, invC)/sum(invC))
       x <- Ptrans%*%x
+      center = apply(x, 2, mean)
     }
   }
   
@@ -130,7 +160,7 @@ gm.prcomp <- function (A, phy = NULL, phylo.pca = FALSE, COV = NULL, ...){
     tol <- max(c(d[cd]/d[1], 0.005))
   }
 
-  pc.res <- prcomp(x, retx = retx, tol = tol)
+  pc.res <- prcomp(x, retx = retx, tol = tol, center = center)
   pcdata <- pc.res$x
   shapes <- shape.names <- NULL
   for(i in 1:ncol(pcdata)){
@@ -147,13 +177,13 @@ gm.prcomp <- function (A, phy = NULL, phylo.pca = FALSE, COV = NULL, ...){
   names(shapes) <- shape.names
   
   # OUTPUT
-  if(is.null(phy) & is.null(COV)) meth <- "Raw data PCA"
+  if(is.null(phy) & is.null(Cov)) meth <- "Raw data PCA"
   if(!is.null(phy) & phylo.pca == FALSE) meth <- "Phylomorphospace"
   if(!is.null(phy) & phylo.pca == TRUE) meth <- "Phylogenetic PCA"
-  if(!is.null(COV)) meth <- "COV-weighted PCA"
+  if(!is.null(Cov)) meth <- "Cov-weighted PCA"
   
   out <- list(pc.summary = summary(pc.res), pc.scores = pcdata[1:n, ], pc.shapes = shapes, 
-              sdev = pc.res$sdev, rotation = pc.res$rotation)
+              sdev = pc.res$sdev, rotation = pc.res$rotation, anc.states = NULL, anc.pcscores = NULL)
   
   if(meth == "Phylomorphospace") {
     out$anc.states <- anc

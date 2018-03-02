@@ -12,9 +12,9 @@ shape.ace <- function(x, phy){
       a <- multi2di(root(phy, node = j))
       tmp[j - N] <- ace(x1, a, method = "pic")$ace[1]
       }
-    anc.states<-cbind(anc.states,tmp)   
+    anc.states<-cbind(anc.states, tmp)   
     }
   colnames(anc.states) <- NULL
-  row.names(anc.states) <- 1:length(tmp)
+  row.names(anc.states) <- NULL
   return(anc.states)
 }

@@ -150,6 +150,9 @@ plot.QQ <- function(r){
 #' @param ... other arguments passed to plot (helpful to employ
 #' different colors or symbols for different groups).  See
 #' \code{\link{plot.default}} and \code{\link{par}}
+#' @return An object of class "plot.procD.lm" is a list with components
+#'  that can be used in other plot functions, such as the type of plot, points, 
+#'  a group factor, and other information depending on the plot parameters used.
 #' @export
 #' @author Michael Collyer
 #' @keywords utilities
@@ -686,10 +689,10 @@ plot.pls <- function(x, label = NULL, warpgrids=TRUE, shapes=FALSE, ...){
         cat("\nWarping mesh\n")
         warp1 <- tps2d3d(vb, A1.ref, pls1.min)
         warp1.PLY$vb <- rbind(t(warp1), 1)
-        shade3d(warp1.PLY, ...)
+        shade3d(warp1.PLY, main = paste("PLS Block1 negative"), ...)
         warp2 <- tps2d3d(vb, A1.ref, pls1.max)
         warp2.PLY$vb <- rbind(t(warp2), 1)
-        shade3d(warp2.PLY, ...)
+        shade3d(warp2.PLY, main = paste("PLS Block1 positive"), ...)
       } else {
         plot3d(pls1.min, type = "s", col = "gray", main = paste("PLS Block1 negative"), 
                size = 1.25, aspect = FALSE,xlab="",ylab="",zlab="",box=FALSE, axes=FALSE)
@@ -705,10 +708,10 @@ plot.pls <- function(x, label = NULL, warpgrids=TRUE, shapes=FALSE, ...){
         cat("\nWarping mesh\n")
         warp1 <- tps2d3d(vb, A2.ref, pls2.min)
         warp1.PLY$vb <- rbind(t(warp1), 1)
-        shade3d(warp1.PLY, ...)
+        shade3d(warp1.PLY, main = paste("PLS Block2 negative"), ...)
         warp2 <- tps2d3d(vb, A2.ref, pls2.max)
         warp2.PLY$vb <- rbind(t(warp2), 1)
-        shade3d(warp2.PLY, ...)
+        shade3d(warp2.PLY, main = paste("PLS Block2 positive"), ...)
       } else {
         plot3d(pls2.min, type = "s", col = "gray", main = paste("PLS Block2 negative"), 
                size = 1.25, aspect = FALSE,xlab="",ylab="",zlab="",box=FALSE, axes=FALSE)
@@ -1247,6 +1250,9 @@ trajplot.by.groups<-function(Data, TM, groups, group.cols = NULL,
 #' but initial points with green color and end points with red color.
 #' @param pt.scale An optional value to magnify or reduce points (1 = no change)
 #' @param ... other arguments passed to plot
+#' @return An object of class "plot.trajectory.analysis" is a list with components
+#'  that can be used in other plot functions, such as the type of plot, points, 
+#'  a group factor, and other information depending on the plot parameters used.
 #' @export
 #' @author Michael Collyer
 #' @keywords utilities
@@ -1383,8 +1389,8 @@ plot.mshape <- function(x, links=NULL,...){
     x <- xy.coords(x)
     par(xpd=T)
     plot.new()
-    plot.window(1.05*range(x$x), 1.05*range(x$y), 
-                xaxt="n", yaxt="n", xlab="", ylab="", bty="n", asp = 1,...)
+    plot.window(1.05*range(x$x), 1.05*range(x$y), asp = 1,
+                xlab="", ylab="", xaxt="n", yaxt="n", bty="n",...)
     if(!is.null(links)){
       for (i in 1:nrow(links)){
         segments(x$x[links[i,1]], x$y[links[i,1]], 
@@ -1409,3 +1415,92 @@ plot.mshape <- function(x, links=NULL,...){
   }
 }
 
+# gm.prcomp
+
+#' Print/Summary function for geomorph
+#' 
+#' @param x print/summary object
+#' @param ... other arguments passed to print/summary
+#' @export
+#' @author Antigoni Kaliontzopoulou
+#' @keywords utilities
+print.gm.prcomp <- function (x, ...) {
+  cat(paste("Method: ", attributes(x)$method, "\n", sep=""))
+  print(x$pc.summary)
+  invisible(x)
+}
+
+#' Print/Summary Function for geomorph
+#' 
+#' @param object print/summary object
+#' @param ... other arguments passed to print/summary
+#' @export
+#' @author Antigoni Kaliontzopoulou
+#' @keywords utilities
+summary.gm.prcomp <- function (object, ...) {
+  print.gm.prcomp(object, ...)
+}
+
+#' Plot Function for geomorph
+#' 
+#' @param x An object of class \code{\link{gm.prcomp}}
+#' @param axis1 A value indicating which PC axis should be displayed as the X-axis (default = PC1)
+#' @param axis2 A value indicating which PC axis should be displayed as the Y-axis (default = PC2)
+#' @param phylo A logical value indicating whether the phylogeny should be projected to PC space
+#' @param phylo.par A list of plotting parameters for the phylogeny edges (edge.color, edge.width, edge.lty)
+#' and nodes (node.bg, node.pch, node.cex)
+#' @param ... other arguments passed to plot
+#' @return An object of class "plot.gm.prcomp" is a list with components
+#'  that can be used in other plot functions, such as the type of plot, points, 
+#'  a group factor, and other information depending on the plot parameters used.
+#'  
+#'  NOTE: To visualize shape variation across PC axes, use \code\{\link{plotRefTotarget}} with the
+#'  $pc.shapes component of your gm.prcomp object.
+#' @export
+#' @author Antigoni Kaliontzopoulou
+#' @keywords utilities
+#' @keywords visualization
+#' @seealso  \code{\link{plotRefToTarget}}
+
+
+plot.gm.prcomp <- function(x, axis1 = 1, axis2 = 2, phylo = FALSE, 
+                           phylo.par = list(edge.color = "black", edge.width = 1, edge.lty = 1,
+                                            node.bg = "black", node.pch = 21, node.cex = 1), ...) {
+  options(warn = -1)
+  pcdata <- x$pc.scores[, c(axis1, axis2)]
+  dots <- list(...)
+  if(!is.null(dots$axes)) axes <- dots$axes else axes <- TRUE
+  if(!is.logical(axes)) axes <- as.logical(axes)
+  if(phylo == FALSE){
+    plot.new()
+    plot.window(1.05*range(pcdata[,1]), 1.05*range(pcdata[,2]), asp=1,...)
+    plot.xy(xy.coords(pcdata), type="p",...)
+  } else {
+    if(attributes(x)$method == "Raw data PCA") {
+      stop("Raw-data PCA does not allow the projection of a phylogeny.
+           Please use phylomorphospace or phylogenetic-PCA.")
+    }
+    phy <- attributes(x)$phy
+    pcdata <- rbind(pcdata, x$anc.pcscores[,c(axis1, axis2)])
+    plot.new()
+    plot.window(1.05*range(pcdata[,1]), 1.05*range(pcdata[,2]), log = "", asp=1,...)
+    if(axes){
+      abline(h = 0, ...)
+      abline(v = 0, ...)
+    }
+    for (i in 1:nrow(phy$edge)) {
+      dt.xy <- xy.coords(pcdata[(phy$edge[i,]),])
+      plot.xy(dt.xy, type="l", col = phylo.par$edge.color, 
+              lwd = phylo.par$edge.width, lty = phylo.par$edge.lty)
+    }
+    plot.xy(xy.coords(pcdata[1:length(phy$tip),]), type="p",...)
+    plot.xy(xy.coords(pcdata[(length(phy$tip)+1):nrow(pcdata),]), type="p",
+            pch = phylo.par$node.pch, cex = phylo.par$node.cex, bg = phylo.par$node.bg)
+  }
+
+  options(warn = 0)
+  out <- list(points = x$pc.data[,1:2], pc.data = x$pc.data)
+  class(out) <- "plot.gm.prcomp"
+  invisible(out)
+  
+}
